@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VisionCare - Real Time AI Platform</title>
+    <title>VisionCare Pro - AI Assistive Platform</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
@@ -13,12 +13,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
     <style>
-        /* --- CORE CSS (UNCHANGED THEME) --- */
+        /* --- CORE CSS (THEME) --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { --primary: #6366f1; --primary-dark: #4f46e5; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --dark: #1e293b; --light: #f8fafc; --border: #e2e8f0; --text: #334155; --text-light: #64748b; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
         
-        /* AUTH & DASHBOARD CONTAINERS */
+        /* AUTH CONTAINER */
         .auth-container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; max-width: 900px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; animation: slideUp 0.6s ease; z-index: 2000; position: relative; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .auth-left { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); padding: 60px 40px; color: white; display: flex; flex-direction: column; justify-content: center; }
@@ -45,43 +45,37 @@
         .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; }
         .btn-logout { padding: 8px 16px; background: var(--danger); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
 
-        /* NAVIGATION TABS (NEW) */
+        /* NAVIGATION TABS */
         .sub-nav { padding: 10px 40px; background: white; border-bottom: 1px solid var(--border); display: flex; gap: 20px; }
         .nav-link { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-light); transition: 0.3s; }
         .nav-link:hover { background: var(--light); }
         .nav-link.active { background: var(--primary); color: white; }
 
-        /* VIEWS */
+        /* VIEW CONTAINERS */
         .view-section { display: none; padding: 30px 40px; max-width: 1800px; margin: 0 auto; }
         .view-section.active { display: grid; }
-
-        /* DASHBOARD VIEW (3 Column Grid) */
         #view-dashboard { grid-template-columns: 300px 1fr 350px; gap: 25px; }
-
-        /* HISTORY VIEW (2 Column Grid) */
         #view-history { grid-template-columns: 1fr 350px; gap: 25px; }
 
-        /* PANELS */
+        /* PANELS & WIDGETS */
         .panel { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); height: fit-content; }
         .panel-title { font-size: 1.3rem; font-weight: 700; color: var(--dark); margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border); }
-
-        /* WIDGETS */
+        
         .status-item { padding: 18px; background: var(--light); border-radius: 12px; margin-bottom: 15px; border-left: 4px solid var(--primary); }
         .status-label { font-size: 0.85rem; color: var(--text-light); margin-bottom: 5px; font-weight: 600; text-transform: uppercase; }
         .status-value { font-size: 1.2rem; font-weight: 700; color: var(--dark); }
-        
-        /* VIDEO & LOGS */
+
+        /* CAMERA & LOGS */
         .live-feed { background: var(--dark); border-radius: 12px; height: 350px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 25px; }
-        video { display: none; }
+        video { display: none; } /* Hide raw video */
         canvas { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-        
+
         .message-box { padding: 25px; border-radius: 12px; text-align: center; font-size: 1.8rem; font-weight: 700; margin-bottom: 25px; transition: all 0.3s; background: var(--light); }
         .message-emergency { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
 
         .log-container { height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--light); }
         .log-item { display: flex; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid #ddd; font-size: 0.9rem; }
-        .log-item:last-child { border-bottom: none; }
         .log-time { color: var(--text-light); font-size: 0.8rem; }
 
         /* HISTORY TABLES */
@@ -100,7 +94,7 @@
         .info-label { font-size: 0.8rem; color: var(--text-light); }
         .info-val { font-weight: 600; color: var(--dark); }
 
-        /* EMERGENCY OVERLAY */
+        /* SOS OVERLAY */
         .emergency-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(239, 68, 68, 0.95); z-index: 9999; align-items: center; justify-content: center; }
         .emergency-overlay.active { display: flex; }
         .btn-dismiss { padding: 20px 40px; background: white; color: var(--danger); border: none; border-radius: 12px; font-size: 1.2rem; font-weight: 700; cursor: pointer; }
@@ -187,7 +181,6 @@
         </div>
 
         <div class="view-section" id="view-history">
-            
             <div class="panel">
                 <h2 class="panel-title">🏥 Patient Medical Profile</h2>
                 <div class="profile-header">
@@ -197,14 +190,12 @@
                         <p style="color:var(--text-light)">ID: #9921-A | Room: 104</p>
                     </div>
                 </div>
-                
                 <div class="info-grid">
                     <div class="info-box"><div class="info-label">Condition</div><div class="info-val">Post-Op Recovery</div></div>
                     <div class="info-box"><div class="info-label">Blood Type</div><div class="info-val">O+</div></div>
                     <div class="info-box"><div class="info-label">Allergies</div><div class="info-val">Penicillin, Peanuts</div></div>
                     <div class="info-box"><div class="info-label">Attending Dr.</div><div class="info-val">Dr. Emily Chen</div></div>
                 </div>
-
                 <h3 style="margin: 25px 0 15px 0; color:var(--dark)">Recent Medical Events</h3>
                 <table class="history-table">
                     <thead><tr><th>Date</th><th>Event</th><th>Notes</th></tr></thead>
@@ -215,7 +206,6 @@
                     </tbody>
                 </table>
             </div>
-
             <div class="panel">
                 <h2 class="panel-title">🗂️ Session History</h2>
                 <table class="history-table">
@@ -224,13 +214,10 @@
                         <tr><td>Today</td><td>0</td><td><span class="tag tag-normal">Active</span></td></tr>
                         <tr><td>Yesterday</td><td>2</td><td><span class="tag tag-critical">SOS Logged</span></td></tr>
                         <tr><td>Oct 24</td><td>0</td><td><span class="tag tag-normal">Normal</span></td></tr>
-                        <tr><td>Oct 23</td><td>5</td><td><span class="tag tag-critical">Pain High</span></td></tr>
                     </tbody>
                 </table>
             </div>
-
         </div>
-
     </div>
 
     <div class="emergency-overlay" id="emergencyOverlay">
@@ -254,11 +241,9 @@
         const emergencyOverlay = document.getElementById('emergencyOverlay');
 
         let lastSpoken = "";
-        let sosTimer = null;
         let isSosActive = false;
         let chartInstance = null;
 
-        // Chart Data Structure
         const chartData = {
             labels: ['Water', 'Meds', 'Help', 'Yes/No'],
             datasets: [{
@@ -273,23 +258,10 @@
             "1,1,1,1,1": { name: "Open Palm", msg: "Hello", type: "normal" },
             "0,1,0,0,0": { name: "Point", msg: "Medicine", type: "med" },
             "0,1,1,0,0": { name: "Victory", msg: "Water", type: "water" },
-            "0,1,1,1,0": { name: "Three", msg: "Food", type: "food" },
-            "0,1,1,1,1": { name: "Four", msg: "Move", type: "move" },
-            "1,1,1,1,0": { name: "Four+Thumb", msg: "Pain: 5", type: "pain" },
             "1,0,0,0,0": { name: "Thumb Up", msg: "Yes", type: "yes" },
             "0,0,0,0,1": { name: "Pinky", msg: "Washroom", type: "toilet" },
-            "1,0,0,0,1": { name: "Call", msg: "Call Family", type: "phone" },
-            "1,1,0,0,1": { name: "Spider-Man", msg: "I Love You", type: "love" },
-            "0,1,0,0,1": { name: "Rock", msg: "TV On", type: "ent" },
-            "1,1,0,0,0": { name: "L-Shape", msg: "Lights", type: "light" },
-            "0,0,1,1,1": { name: "OK Sign", msg: "I am Okay", type: "ok" },
             "1,1,1,0,0": { name: "Gun", msg: "Chest Pain", type: "pain" },
-            "0,0,1,0,0": { name: "Middle", msg: "Help!", type: "urgent" },
-            "1,0,1,0,0": { name: "V+Thumb", msg: "Cold", type: "temp" },
-            "1,0,0,1,0": { name: "Ring+Thumb", msg: "Hot", type: "temp" },
-            "1,1,0,1,1": { name: "Claw", msg: "Cramps", type: "pain" },
-            "0,1,0,1,0": { name: "Split", msg: "Bed Up", type: "bed" },
-            "0,0,0,1,1": { name: "Rabbit", msg: "Sleep", type: "sleep" }
+            "0,0,1,1,1": { name: "OK Sign", msg: "I am Okay", type: "ok" }
         };
 
         // --- 3. APP LOGIC ---
@@ -297,7 +269,7 @@
             e.preventDefault();
             document.getElementById('authPage').style.display = 'none';
             document.getElementById('dashboardPage').classList.add('active');
-            speak("System Active. Welcome.");
+            speak("System Active. Starting Camera.");
             initChart();
             startCamera();
         }
@@ -319,49 +291,21 @@
             realTimeLog.prepend(div);
         }
 
-        function triggerSOS() {
-            if(isSosActive) return;
-            isSosActive = true;
-            emergencyOverlay.classList.add('active');
-            logEvent("🚨 SOS TRIGGERED");
-            let loop = setInterval(() => {
-                if(!isSosActive) clearInterval(loop);
-                else window.speechSynthesis.speak(new SpeechSynthesisUtterance("Emergency Alert!"));
-            }, 2500);
+        function updateChart(text) {
+            if(text.includes("Water")) chartData.datasets[0].data[0]++;
+            else if(text.includes("Medicine")) chartData.datasets[0].data[1]++;
+            else if(text.includes("Pain")) chartData.datasets[0].data[2]++;
+            else chartData.datasets[0].data[3]++;
+            chartInstance.update();
         }
 
         function dismissEmergency() {
             isSosActive = false;
             emergencyOverlay.classList.remove('active');
             window.speechSynthesis.cancel();
-            logEvent("SOS Dismissed");
         }
 
-        function updateChart(text) {
-            if(text.includes("Water")) chartData.datasets[0].data[0]++;
-            else if(text.includes("Medicine")) chartData.datasets[0].data[1]++;
-            else if(text.includes("Help") || text.includes("Pain")) chartData.datasets[0].data[2]++;
-            else chartData.datasets[0].data[3]++;
-            chartInstance.update();
-        }
-
-        // --- 4. MEDIA PIPE ---
-        function getFingerState(lm, handedness) {
-            let fingers = [];
-            // Thumb
-            if (handedness === 'Right') fingers.push(lm[4].x < lm[3].x ? 1 : 0);
-            else fingers.push(lm[4].x > lm[3].x ? 1 : 0);
-            // Fingers
-            [8, 12, 16, 20].forEach(tip => fingers.push(lm[tip].y < lm[tip - 2].y ? 1 : 0));
-            return fingers;
-        }
-
-        function detectGesture(fingers, lm) {
-            if(Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y) < 0.05) return gestureMap["0,0,1,1,1"];
-            if(fingers[0]===0 && fingers[1]===0 && fingers[2]===0 && lm[4].y > lm[3].y) return { name: "Thumb Down", msg: "No", type: "no" };
-            return gestureMap[fingers.join(",")] || { name: "--", msg: "Scanning...", type: "none" };
-        }
-
+        // --- 4. MEDIA PIPE LOGIC ---
         function onResults(results) {
             canvasElement.width = videoElement.videoWidth;
             canvasElement.height = videoElement.videoHeight;
@@ -376,39 +320,63 @@
                 drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: '#6366f1', lineWidth: 4});
                 drawLandmarks(canvasCtx, lm, {color: '#ef4444', lineWidth: 2, radius: 4});
 
-                const fingers = getFingerState(lm, handedness);
-                const result = detectGesture(fingers, lm);
+                // Detect
+                let fingers = [];
+                if (handedness === 'Right') fingers.push(lm[4].x < lm[3].x ? 1 : 0);
+                else fingers.push(lm[4].x > lm[3].x ? 1 : 0);
+                [8, 12, 16, 20].forEach(tip => fingers.push(lm[tip].y < lm[tip - 2].y ? 1 : 0));
+
+                let result = { name: "--", msg: "Scanning...", type: "none" };
+                if(Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y) < 0.05) result = gestureMap["0,0,1,1,1"];
+                else result = gestureMap[fingers.join(",")] || result;
 
                 gstText.innerText = result.name;
                 msgBox.innerText = result.msg;
                 
-                if(result.type === 'pain' || result.type === 'urgent') msgBox.className = "message-box message-emergency";
-                else msgBox.className = "message-box";
+                if(result.type === 'pain') {
+                    msgBox.className = "message-box message-emergency";
+                    if(!isSosActive) {
+                        isSosActive = true;
+                        emergencyOverlay.classList.add('active');
+                        window.speechSynthesis.speak(new SpeechSynthesisUtterance("Emergency Alert"));
+                    }
+                } else {
+                    msgBox.className = "message-box";
+                }
 
                 if(result.type !== "none") speak(result.msg);
-
-                if(result.name === "Fist") {
-                    if(!sosTimer) sosTimer = setTimeout(triggerSOS, 2500);
-                } else {
-                    clearTimeout(sosTimer);
-                    sosTimer = null;
-                }
             }
             canvasCtx.restore();
         }
 
-        function startCamera() {
-            const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-            hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
-            hands.onResults(onResults);
-            
-            const camera = new Camera(videoElement, {
-                onFrame: async () => { await hands.send({image: videoElement}); },
-                width: 640, height: 480
-            });
-            camera.start().catch(err => {
-                alert("Camera Error: " + err.message + ". Please allow camera permissions.");
-            });
+        // --- 5. ROBUST CAMERA START (CRITICAL FIX) ---
+        async function startCamera() {
+            try {
+                // Ensure browser support
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error("Browser API not supported");
+                }
+
+                const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+                hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+                hands.onResults(onResults);
+                
+                // Explicitly request permission first
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoElement.srcObject = stream;
+                videoElement.play();
+
+                // Attach MediaPipe
+                const camera = new Camera(videoElement, {
+                    onFrame: async () => { await hands.send({image: videoElement}); },
+                    width: 640, height: 480
+                });
+                await camera.start();
+                console.log("Camera started");
+            } catch (err) {
+                console.error(err);
+                alert("CAMERA ERROR: " + err.message + "\n\nPlease click the Lock icon in your address bar and Allow Camera.");
+            }
         }
 
         function initChart() {
@@ -420,7 +388,7 @@
             });
         }
 
-        // --- 5. UI UTILS ---
+        // --- 6. UI UTILS ---
         function switchAuth(t) {
             document.querySelectorAll('.auth-tab').forEach(x=>x.classList.remove('active'));
             document.querySelectorAll('.auth-form').forEach(x=>x.classList.remove('active'));
