@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuroSense: AI Hospital Interface</title>
+    <title>NeuroSense: Ultra v3.0</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
@@ -14,17 +15,19 @@
 
     <style>
         :root {
-            --neon-blue: #00f3ff;
-            --neon-red: #ff003c;
-            --neon-green: #0aff0a;
-            --glass-bg: rgba(10, 20, 30, 0.65);
-            --glass-border: 1px solid rgba(0, 243, 255, 0.2);
+            --primary: #00f3ff;
+            --alert: #ff003c;
+            --success: #0aff0a;
+            --warning: #ffcc00;
+            --bg-dark: #050a10;
+            --glass: rgba(10, 20, 30, 0.85);
+            --border: 1px solid rgba(0, 243, 255, 0.3);
         }
 
         body {
-            font-family: 'Share Tech Mono', monospace;
-            background: radial-gradient(circle at center, #0b1021 0%, #000000 100%);
-            color: var(--neon-blue);
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--primary);
             margin: 0;
             height: 100vh;
             overflow: hidden;
@@ -32,419 +35,422 @@
             flex-direction: column;
         }
 
-        /* --- BACKGROUND GRID EFFECT --- */
-        .bg-grid {
-            position: absolute;
-            width: 200%;
-            height: 200%;
-            background-image: 
-                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
-            animation: gridMove 20s linear infinite;
-            z-index: -1;
+        /* --- LOGIN SCREEN --- */
+        #login-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .login-box {
+            border: 2px solid var(--primary); padding: 40px; border-radius: 20px;
+            text-align: center; background: rgba(0, 243, 255, 0.05); width: 300px;
+        }
+        .scan-line {
+            height: 2px; width: 100%; background: var(--alert); margin: 20px 0;
+            animation: scan 1.5s infinite alternate; box-shadow: 0 0 10px var(--alert);
+        }
+        @keyframes scan { from { transform: scaleX(0.2); } to { transform: scaleX(1); } }
+        .btn-login {
+            background: var(--primary); color: #000; border: none; padding: 10px 30px;
+            font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-top: 20px;
+            clip-path: polygon(10% 0, 100% 0, 100% 80%, 90% 100%, 0 100%, 0 20%);
         }
 
-        @keyframes gridMove { 0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); } 100% { transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px); } }
+        /* --- APP STRUCTURE --- */
+        #app-container { display: none; height: 100%; display: flex; } /* Hidden until login */
 
-        /* --- HEADER --- */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 30px;
-            border-bottom: 1px solid rgba(0, 243, 255, 0.3);
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
-            z-index: 10;
+        /* SIDEBAR */
+        .sidebar {
+            width: 80px; background: rgba(0,0,0,0.8); border-right: var(--border);
+            display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 100;
         }
-        
-        .logo { font-size: 1.8rem; text-shadow: 0 0 10px var(--neon-blue); letter-spacing: 2px; }
-        .live-indicator { color: var(--neon-red); animation: blink 1s infinite; }
-        
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-
-        /* --- MAIN LAYOUT --- */
-        .dashboard {
-            display: flex;
-            flex: 1;
-            padding: 20px;
-            gap: 20px;
+        .nav-btn {
+            color: #555; font-size: 1.5rem; margin-bottom: 30px; cursor: pointer; transition: 0.3s;
         }
+        .nav-btn:hover, .nav-btn.active { color: var(--primary); text-shadow: 0 0 10px var(--primary); }
 
-        /* --- PANELS (GLASSMORPHISM) --- */
+        /* MAIN CONTENT */
+        .main-content { flex: 1; position: relative; padding: 20px; display: flex; gap: 20px; overflow: hidden; }
+        .section { display: none; width: 100%; height: 100%; animation: fadeIn 0.5s; }
+        .section.active { display: flex; gap: 20px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* PANELS */
         .panel {
-            background: var(--glass-bg);
-            border: var(--glass-border);
-            border-radius: 10px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.05);
-            display: flex;
-            flex-direction: column;
-            position: relative;
+            background: var(--glass); border: var(--border); border-radius: 15px; padding: 20px; position: relative;
         }
+        .card-header { font-family: 'Orbitron', sans-serif; border-bottom: 1px solid #333; margin-bottom: 10px; color: #aaa; font-size: 0.9rem; letter-spacing: 2px; }
+        .big-text { font-size: 2.5rem; font-weight: bold; text-shadow: 0 0 20px var(--primary); margin: 0; }
+        .sub-text { font-size: 1.2rem; color: #fff; }
 
-        .panel-header {
-            font-size: 1.2rem;
-            border-bottom: 1px solid rgba(0, 243, 255, 0.2);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        /* --- LEFT COLUMN: VITALS --- */
-        .col-left { flex: 1; gap: 20px; display: flex; flex-direction: column; }
-        
-        .vital-box { margin-bottom: 15px; }
-        .vital-label { color: #888; font-size: 0.9rem; }
-        .vital-value { font-size: 2rem; color: #fff; text-shadow: 0 0 5px var(--neon-blue); }
-        
-        /* ECG ANIMATION */
-        .ecg-container {
-            height: 60px;
-            width: 100%;
-            background: rgba(0,0,0,0.3);
-            border-radius: 5px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(0, 243, 255, 0.1);
-        }
-        .ecg-line {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: transparent;
-            box-shadow: 0 0 4px var(--neon-green);
-        }
-        .ecg-line::before {
-            content: '';
-            position: absolute;
-            top: -30px;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" preserveAspectRatio="none"><path stroke="%230aff0a" fill="none" stroke-width="2" d="M0,50 L20,50 L30,20 L40,80 L50,50 L80,50 L90,20 L100,80 L110,50 L300,50" /></svg>');
-            background-repeat: repeat-x;
-            background-size: 300px 100%;
-            animation: ecgMove 2s linear infinite;
-        }
-        @keyframes ecgMove { from { background-position: 0 0; } to { background-position: -300px 0; } }
-
-        /* --- CENTER: CAMERA HUD --- */
-        .col-center { flex: 2; position: relative; }
-        
-        .video-wrapper {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            background: #000;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 2px solid var(--neon-blue);
-            box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
-        }
-
+        /* VIDEO */
+        .video-box { flex: 2; border: 2px solid var(--primary); border-radius: 15px; overflow: hidden; position: relative; background: #000; }
         video, canvas { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+        /* --- HISTORY TAB --- */
+        .history-table { width: 100%; border-collapse: collapse; color: #fff; }
+        .history-table th { text-align: left; border-bottom: 1px solid var(--primary); padding: 10px; color: var(--primary); }
+        .history-table td { border-bottom: 1px solid #333; padding: 10px; }
+        .tag-alert { color: var(--alert); border: 1px solid var(--alert); padding: 2px 5px; font-size: 0.8rem; border-radius: 4px; }
+        .tag-ok { color: var(--success); border: 1px solid var(--success); padding: 2px 5px; font-size: 0.8rem; border-radius: 4px; }
+        .tag-info { color: var(--warning); border: 1px solid var(--warning); padding: 2px 5px; font-size: 0.8rem; border-radius: 4px; }
+
+        /* --- DIGITAL TWIN (HOLOGRAPHIC) --- */
+        .digital-twin-container {
+            display: flex; align-items: center; justify-content: center; position: relative; height: 100%;
+        }
+        .body-outline {
+            height: 500px; width: 220px; border: 2px solid rgba(0, 243, 255, 0.1); border-radius: 60px;
+            position: relative; box-shadow: 0 0 20px rgba(0, 243, 255, 0.05) inset;
+            backdrop-filter: blur(2px);
+            background: radial-gradient(circle at center, rgba(0, 243, 255, 0.05) 0%, transparent 70%);
+        }
+        .organ {
+            position: absolute; background: rgba(255, 255, 255, 0.05); border: 1px solid #444; transition: 0.5s;
+        }
+        .head { top: 20px; left: 60px; width: 100px; height: 100px; border-radius: 50%; }
+        .chest { top: 130px; left: 50px; width: 120px; height: 110px; border-radius: 20px; }
+        .stomach { top: 250px; left: 60px; width: 100px; height: 90px; border-radius: 20px; }
         
-        /* SCANNING LASER EFFECT */
-        .scanner-beam {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: var(--neon-blue);
-            box-shadow: 0 0 20px var(--neon-blue);
-            opacity: 0.5;
-            animation: scan 3s ease-in-out infinite;
-            z-index: 5;
-        }
-        @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { top: 100%; opacity: 0; } }
-
-        /* HUD CORNERS */
-        .hud-corner {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--neon-blue);
-            z-index: 6;
-        }
-        .tl { top: 20px; left: 20px; border-right: none; border-bottom: none; }
-        .tr { top: 20px; right: 20px; border-left: none; border-bottom: none; }
-        .bl { bottom: 20px; left: 20px; border-right: none; border-top: none; }
-        .br { bottom: 20px; right: 20px; border-left: none; border-top: none; }
-
-        /* --- RIGHT: OUTPUT & SOS --- */
-        .col-right { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+        /* Pain States */
+        .organ.pain-active { background: rgba(255, 0, 60, 0.4); box-shadow: 0 0 40px var(--alert); border-color: var(--alert); animation: pulse 0.5s infinite; }
+        .organ.needs-water { background: rgba(0, 150, 255, 0.4); box-shadow: 0 0 40px #0099ff; border-color: #0099ff; animation: pulse 1s infinite; }
         
-        .output-text { font-size: 2.5rem; color: #fff; text-align: center; margin: 20px 0; text-shadow: 0 0 10px var(--neon-blue); }
-        .output-sub { text-align: center; color: var(--neon-blue); font-size: 1.2rem; }
+        @keyframes pulse { 0% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        /* SOS BUTTON STYLES */
-        .sos-status {
-            font-size: 3rem;
-            text-align: center;
-            color: #555;
-            transition: 0.3s;
+        /* Gesture Guide Overlay */
+        .guide-box {
+            position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8);
+            padding: 10px; border-radius: 8px; font-size: 0.8rem; color: #888;
         }
-        .sos-active {
-            color: var(--neon-red);
-            text-shadow: 0 0 20px var(--neon-red);
-            animation: pulseWarning 0.5s infinite alternate;
-        }
-        @keyframes pulseWarning { from { transform: scale(1); } to { transform: scale(1.1); } }
-
-        /* VOICE WAVEFORM */
-        .voice-box {
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            opacity: 0.3;
-        }
-        .bar { width: 5px; background: var(--neon-blue); animation: wave 1s infinite; }
-        .speaking .voice-box { opacity: 1; }
-        .speaking .bar { animation-play-state: running; }
-        .bar:nth-child(1) { height: 20px; animation-delay: 0.1s; }
-        .bar:nth-child(2) { height: 35px; animation-delay: 0.2s; }
-        .bar:nth-child(3) { height: 50px; animation-delay: 0.3s; }
-        .bar:nth-child(4) { height: 35px; animation-delay: 0.4s; }
-        .bar:nth-child(5) { height: 20px; animation-delay: 0.5s; }
-        
-        @keyframes wave { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.5); } }
 
     </style>
 </head>
 <body>
 
-    <div class="bg-grid"></div>
+    <div id="login-screen">
+        <div class="login-box">
+            <h2 style="font-family: 'Orbitron'; margin:0;">NEURO<span style="color:#fff">SENSE</span></h2>
+            <p style="color:#aaa; font-size:0.8rem;">BIOMETRIC ACCESS CONTROL</p>
+            <div style="height: 100px; display:flex; align-items:center; justify-content:center;">
+                <i class="fas fa-fingerprint" style="font-size: 4rem; color: var(--primary); opacity: 0.8;"></i>
+            </div>
+            <div class="scan-line"></div>
+            <div id="login-msg" style="height: 20px; color: var(--success);"></div>
+            <button class="btn-login" onclick="loginSequence()">INITIATE SCAN</button>
+        </div>
+    </div>
 
-    <header>
-        <div class="logo">NEURO<span style="color:#fff">SENSE</span> v2.0</div>
-        <div>SYSTEM STATUS: <span class="live-indicator">● ONLINE</span></div>
-    </header>
-
-    <div class="dashboard">
+    <div id="app-container" style="display:none;">
         
-        <div class="col-left">
-            <div class="panel">
-                <div class="panel-header">Patient Vitals <span style="font-size:0.8rem">ID: #9921</span></div>
-                
-                <div class="vital-box">
-                    <div class="vital-label">HEART RATE (BPM)</div>
-                    <div class="vital-value" id="bpm">72</div>
-                    <div class="ecg-container"><div class="ecg-line"></div></div>
-                </div>
-
-                <div class="vital-box">
-                    <div class="vital-label">OXYGEN (SpO2)</div>
-                    <div class="vital-value" style="color:var(--neon-green)">98%</div>
-                </div>
-                
-                <div class="vital-box">
-                    <div class="vital-label">TEMPERATURE</div>
-                    <div class="vital-value">98.6°F</div>
-                </div>
-            </div>
-
-            <div class="panel" style="flex:1">
-                <div class="panel-header">Daily Tasks</div>
-                <div style="margin-top:10px; font-size:0.9rem;">
-                    [X] Morning Meds<br><br>
-                    [ ] Physiotherapy<br><br>
-                    [ ] Lunch (13:00)
-                </div>
-            </div>
+        <div class="sidebar">
+            <div class="nav-btn active" onclick="switchTab('dashboard', this)"><i class="fas fa-video"></i></div>
+            <div class="nav-btn" onclick="switchTab('diagnosis', this)"><i class="fas fa-heartbeat"></i></div>
+            <div class="nav-btn" onclick="switchTab('history', this)"><i class="fas fa-list-ul"></i></div>
+            <div class="nav-btn" onclick="location.reload()" style="margin-top:auto; color:var(--alert);"><i class="fas fa-power-off"></i></div>
         </div>
 
-        <div class="col-center">
-            <div class="video-wrapper">
-                <div class="scanner-beam"></div>
-                <div class="hud-corner tl"></div>
-                <div class="hud-corner tr"></div>
-                <div class="hud-corner bl"></div>
-                <div class="hud-corner br"></div>
-                
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color:white;" id="loader">
-                    INITIALIZING OPTICAL SENSORS...
+        <div class="main-content">
+            
+            <div id="dashboard" class="section active">
+                <div class="video-box panel">
+                    <div style="position: absolute; top:10px; left:10px; z-index:10; background:rgba(0,0,0,0.5); padding:5px 10px; border-radius:5px;">
+                        LIVE SENSOR FEED • <span style="color:var(--success)">ACTIVE</span>
+                    </div>
+                    <video id="input_video" style="display:none"></video>
+                    <canvas id="output_canvas"></canvas>
+                    
+                    <div class="guide-box">
+                        Try: ✌️, 👌, 🤘, 🤙, 👊, 🔫
+                    </div>
                 </div>
-                
-                <video id="input_video"></video>
-                <canvas id="output_canvas"></canvas>
-            </div>
-        </div>
 
-        <div class="col-right">
-            <div class="panel">
-                <div class="panel-header">Gesture Analysis</div>
-                <div class="output-text" id="gesture_name">--</div>
-                <div class="output-sub" id="message_text">Waiting for input...</div>
-                <div style="text-align:center; margin-top:20px; color:#555; font-size:0.8rem">CONFIDENCE: <span id="confidence" style="color:#fff">0%</span></div>
-            </div>
+                <div class="status-panel">
+                    <div class="panel">
+                        <div class="card-header">DETECTED SIGNAL</div>
+                        <p class="big-text" id="gesture_name">--</p>
+                        <p class="sub-text" id="message_text">Waiting for input...</p>
+                    </div>
 
-            <div class="panel" id="voice_panel">
-                <div class="panel-header">Audio Feedback</div>
-                <div class="voice-box">
-                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                    <div class="panel" id="sos_panel">
+                        <div class="card-header">SECURITY STATUS</div>
+                        <p class="big-text" id="sos_status" style="color:#555">SECURE</p>
+                    </div>
+
+                    <div class="panel" style="flex:1">
+                        <div class="card-header">ACTIVE MODULES</div>
+                        <div style="margin-top:10px; font-size:0.9rem;">
+                            <p><i class="fas fa-check-circle" style="color:var(--success)"></i> Voice Synthesis</p>
+                            <p><i class="fas fa-check-circle" style="color:var(--success)"></i> Gesture Recognition</p>
+                            <p><i class="fas fa-check-circle" style="color:var(--success)"></i> Event Logger</p>
+                        </div>
+                    </div>
                 </div>
-                <div style="text-align:center; margin-top:10px; font-size:0.8rem; cursor:pointer;" onclick="toggleVoice()">MUTE/UNMUTE</div>
             </div>
 
-            <div class="panel" style="border-color: var(--neon-red);">
-                <div class="panel-header" style="color:var(--neon-red)">EMERGENCY STATUS</div>
-                <div class="sos-status" id="sos_status">SAFE</div>
+            <div id="diagnosis" class="section">
+                <div class="panel" style="flex:1; display:flex; flex-direction:column;">
+                    <div class="card-header">DIGITAL TWIN • SYMPTOM LOCALIZER</div>
+                    
+                    <div class="digital-twin-container">
+                        <div class="body-outline">
+                            <div class="organ head" id="organ-head"></div>
+                            <div class="organ chest" id="organ-chest"></div>
+                            <div class="organ stomach" id="organ-stomach"></div>
+                        </div>
+                        
+                        <div style="position:absolute; right: 40px; top: 80px; text-align:right;">
+                            <h3 style="margin:0; color:var(--primary)">NEURAL LOAD</h3>
+                            <p style="margin:0; font-size:2rem;">Normal</p>
+                        </div>
+                        
+                        <div style="position:absolute; left: 40px; bottom: 80px;">
+                            <h3 style="margin:0; color:var(--alert)">PAIN INDEX</h3>
+                            <p style="margin:0; font-size:2rem;" id="pain-level-display">0%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" style="width: 320px;">
+                    <div class="card-header">AI DIAGNOSTIC REPORT</div>
+                    <div style="margin-top:20px;">
+                        <p><strong>Primary Complaint:</strong> <span id="complaint-text" style="color:#fff">None</span></p>
+                        <p><strong>Urgency:</strong> <span id="urgency-text" style="color:var(--success)">Low</span></p>
+                        <hr style="border-color:#333">
+                        <p style="font-size:0.8rem; color:#888;">Suggested Action:</p>
+                        <div id="ai-action" style="background:#222; padding:10px; border-radius:5px; border-left:3px solid var(--primary);">
+                            System Monitoring...
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <div id="history" class="section">
+                <div class="panel" style="width:100%; overflow-y: auto;">
+                    <div class="card-header">PATIENT INTERACTION LOGS</div>
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Gesture Detected</th>
+                                <th>Decoded Message</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
-
     </div>
 
 <script>
-    /* --- JAVASCRIPT LOGIC --- */
+    // --- SETUP ---
     const videoElement = document.getElementById('input_video');
     const canvasElement = document.getElementById('output_canvas');
     const canvasCtx = canvasElement.getContext('2d');
-    const loader = document.getElementById('loader');
-
+    
     // UI Refs
     const uiGesture = document.getElementById('gesture_name');
     const uiMessage = document.getElementById('message_text');
     const uiSos = document.getElementById('sos_status');
-    const uiConf = document.getElementById('confidence');
-    const voicePanel = document.getElementById('voice_panel');
-    const bpmDisplay = document.getElementById('bpm');
+    const historyBody = document.getElementById('history-body');
+    const sosPanel = document.getElementById('sos_panel');
+    
+    // Twin Refs
+    const organChest = document.getElementById('organ-chest');
+    const organHead = document.getElementById('organ-head');
+    const organStomach = document.getElementById('organ-stomach');
+    const painDisplay = document.getElementById('pain-level-display');
+    const aiAction = document.getElementById('ai-action');
 
     // State
     let fistStartTime = null;
     const SOS_HOLD_TIME = 2000;
-    let voiceEnabled = true;
     let lastSpoken = "";
-    let lastTime = 0;
+    let lastLogTime = 0;
 
-    // Simulate Heart Rate Fluctuation
-    setInterval(() => {
-        const base = 72;
-        const random = Math.floor(Math.random() * 5) - 2;
-        bpmDisplay.innerText = base + random;
-    }, 2000);
-
-    // Voice Logic
-    function toggleVoice() { voiceEnabled = !voiceEnabled; }
-    
-    function speak(text) {
-        if (!voiceEnabled || text === lastSpoken || Date.now() - lastTime < 2500) return;
-        
-        voicePanel.classList.add('speaking');
-        const u = new SpeechSynthesisUtterance(text);
-        u.rate = 0.9;
-        u.onend = () => { voicePanel.classList.remove('speaking'); };
-        window.speechSynthesis.speak(u);
-        
-        lastSpoken = text;
-        lastTime = Date.now();
+    // --- LOGIN ---
+    function loginSequence() {
+        const msg = document.getElementById('login-msg');
+        const btn = document.querySelector('.btn-login');
+        btn.innerText = "SCANNING...";
+        msg.innerText = "Acquiring Biometrics...";
+        setTimeout(() => { msg.innerText = "Identity Verified (99%)"; msg.style.color = "#0aff0a"; }, 1500);
+        setTimeout(() => {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
+            initCamera(); 
+        }, 2500);
     }
 
-    // MediaPipe Setup
+    // --- TABS ---
+    window.switchTab = function(tabId, btn) {
+        document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    // --- LOGGING ---
+    function logEvent(gesture, msg, type) {
+        if (Date.now() - lastLogTime < 2500) return; 
+        const row = document.createElement('tr');
+        const time = new Date().toLocaleTimeString();
+        let badgeClass = 'tag-info';
+        if(type === 'alert') badgeClass = 'tag-alert';
+        if(type === 'ok') badgeClass = 'tag-ok';
+        
+        row.innerHTML = `<td>${time}</td><td>${gesture}</td><td>${msg}</td><td><span class="${badgeClass}">${type.toUpperCase()}</span></td>`;
+        historyBody.prepend(row);
+        lastLogTime = Date.now();
+    }
+
+    // --- DIGITAL TWIN UPDATE ---
+    function updateDigitalTwin(gesture) {
+        // Reset
+        organChest.className = 'organ chest';
+        organHead.className = 'organ head';
+        organStomach.className = 'organ stomach';
+        painDisplay.innerText = "0%";
+        painDisplay.style.color = "#fff";
+        document.getElementById('urgency-text').innerText = "Low";
+        document.getElementById('urgency-text').style.color = "var(--success)";
+
+        if (gesture === "Gun Shape") { 
+            organChest.classList.add('pain-active'); 
+            painDisplay.innerText = "85%";
+            painDisplay.style.color = "var(--alert)";
+            document.getElementById('complaint-text').innerText = "Chest Pain / Cardiac";
+            document.getElementById('urgency-text').innerText = "CRITICAL";
+            document.getElementById('urgency-text').style.color = "var(--alert)";
+            aiAction.innerText = "Alert Cardiology. Prepare ECG.";
+        }
+        else if (gesture === "4 Fingers") { 
+            organHead.classList.add('pain-active'); 
+            painDisplay.innerText = "60%";
+            painDisplay.style.color = "orange";
+            document.getElementById('complaint-text').innerText = "Severe Migraine";
+            aiAction.innerText = "Check neurological response. Dim lights.";
+        }
+        else if (gesture === "3 Fingers") { 
+            organStomach.classList.add('needs-water'); // Hungry/Food
+            document.getElementById('complaint-text').innerText = "Hunger / Nutrition";
+            aiAction.innerText = "Notify Dietician. Check meal plan.";
+        }
+        else if (gesture === "Victory") { 
+            organHead.classList.add('needs-water'); // Thirsty/Water
+            document.getElementById('complaint-text').innerText = "Dehydration";
+            aiAction.innerText = "Administer Fluids / Water.";
+        }
+        else if (gesture === "Fist") { 
+            painDisplay.innerText = "SOS";
+            painDisplay.style.color = "red";
+            document.getElementById('complaint-text').innerText = "PANIC / EMERGENCY";
+        }
+    }
+
+    // --- MAIN GESTURE DETECTION ---
+    function detectGesture(fingers, lm) {
+        // Geometric Checks
+        if (Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y) < 0.05) 
+            return {name:"OK Sign", msg:"I am feeling better", type:"ok"};
+
+        // Finger States: Thumb, Index, Middle, Ring, Pinky
+        const f = fingers.join(",");
+        
+        const map = {
+            "0,0,0,0,0": {name:"Fist", msg:"SOS / Holding", type:"alert"},
+            "1,1,1,1,1": {name:"Open Palm", msg:"Hello Nurse", type:"info"},
+            "0,1,0,0,0": {name:"1 Finger", msg:"I have a Question", type:"info"},
+            "0,1,1,0,0": {name:"Victory", msg:"I need Water", type:"info"},
+            "0,1,1,1,0": {name:"3 Fingers", msg:"I am Hungry", type:"info"},
+            "0,1,1,1,1": {name:"4 Fingers", msg:"My Head Hurts", type:"alert"}, // New
+            "1,0,0,0,0": {name:"Thumb Up", msg:"Yes / Agree", type:"ok"},
+            "0,0,0,0,1": {name:"Pinky Up", msg:"I need Restroom", type:"alert"}, // New
+            "1,0,0,0,1": {name:"Phone Hand", msg:"Call my Family", type:"info"}, // New
+            "0,1,0,0,1": {name:"Rock Sign", msg:"Turn on TV", type:"info"}, // New
+            "1,1,0,0,0": {name:"L-Shape", msg:"Lights On", type:"info"},
+            "1,1,1,0,0": {name:"Gun Shape", msg:"Chest Pain", type:"alert"},
+            "1,1,0,0,1": {name:"Spider-Man", msg:"I Love You", type:"ok"} // New
+        };
+        return map[f] || {name:"Scanning...", msg:"...", type:"none"};
+    }
+
+    // --- MEDIAPIPE LOOP ---
     function onResults(results) {
-        loader.style.display = 'none';
         canvasElement.width = videoElement.videoWidth;
         canvasElement.height = videoElement.videoHeight;
-
         canvasCtx.save();
         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
         canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
             const lm = results.multiHandLandmarks[0];
-            const handedness = results.multiHandedness[0].label;
-
-            // Draw Sci-Fi Style Skeleton
+            const handedness = results.multiHandedness[0].label; // Right or Left
+            
             drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: '#00f3ff', lineWidth: 2});
-            drawLandmarks(canvasCtx, lm, {color: '#ff003c', lineWidth: 1, radius: 3});
+            drawLandmarks(canvasCtx, lm, {color: '#ff003c', lineWidth: 1, radius: 2});
 
-            // Logic
-            const fingers = getFingerState(lm, handedness);
+            // Get Finger State (Adapted for Mirror View)
+            let fingers = [];
+            // Thumb: Simple X check relative to knuckle
+            if (handedness === 'Right') fingers.push(lm[4].x < lm[3].x ? 1 : 0);
+            else fingers.push(lm[4].x > lm[3].x ? 1 : 0);
+            
+            // 4 Fingers: Y check
+            [8,12,16,20].forEach(t => fingers.push(lm[t].y < lm[t-2].y ? 1 : 0));
+
             const gesture = detectGesture(fingers, lm);
 
-            uiGesture.innerText = gesture.name;
-            uiMessage.innerText = gesture.msg;
-            uiConf.innerText = Math.round(results.multiHandedness[0].score * 100) + "%";
-
-            if (gesture.msg !== "Scanning..." && gesture.msg !== "Holding...") speak(gesture.msg);
+            if (gesture.name !== "Scanning...") {
+                uiGesture.innerText = gesture.name;
+                uiMessage.innerText = gesture.msg;
+                
+                // Voice & Log
+                if (gesture.msg !== lastSpoken && gesture.name !== "Fist") {
+                    let u = new SpeechSynthesisUtterance(gesture.msg);
+                    window.speechSynthesis.speak(u);
+                    lastSpoken = gesture.msg;
+                    logEvent(gesture.name, gesture.msg, gesture.type);
+                    updateDigitalTwin(gesture.name); // Update Hologram
+                }
+            }
 
             // SOS Logic
             if (gesture.name === "Fist") {
                 if (!fistStartTime) fistStartTime = Date.now();
                 if (Date.now() - fistStartTime > SOS_HOLD_TIME) {
-                    uiSos.innerText = "CRITICAL";
-                    uiSos.classList.add('sos-active');
-                    speak("Emergency alert triggered");
-                } else {
-                    uiSos.innerText = "HOLD...";
+                    uiSos.innerText = "CRITICAL ALERT";
+                    sosPanel.style.border = "2px solid red";
+                    if(lastSpoken !== "Emergency") {
+                        window.speechSynthesis.speak(new SpeechSynthesisUtterance("Emergency Alert Triggered"));
+                        lastSpoken = "Emergency";
+                        logEvent("SOS", "EMERGENCY TRIGGERED", "alert");
+                        updateDigitalTwin("Fist");
+                    }
                 }
             } else {
                 fistStartTime = null;
-                uiSos.innerText = "SAFE";
-                uiSos.classList.remove('sos-active');
+                uiSos.innerText = "SECURE";
+                sosPanel.style.border = "1px solid rgba(0, 243, 255, 0.3)";
             }
-        } else {
-            uiGesture.innerText = "--"; 
-            uiMessage.innerText = "Scanning...";
-            uiConf.innerText = "0%";
-            lastSpoken = "";
         }
         canvasCtx.restore();
     }
 
-    // Helpers
-    function getFingerState(lm, hand) {
-        const tips = [8, 12, 16, 20];
-        let fingers = [];
-        let isRight = hand === 'Right';
-        // Thumb (Simple X-check)
-        fingers.push(isRight ? (lm[4].x < lm[3].x ? 1 : 0) : (lm[4].x > lm[3].x ? 1 : 0));
-        // Fingers (Y-check)
-        tips.forEach(t => fingers.push(lm[t].y < lm[t-2].y ? 1 : 0));
-        return fingers;
+    function initCamera() {
+        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+        hands.setOptions({maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7});
+        hands.onResults(onResults);
+        const camera = new Camera(videoElement, {
+            onFrame: async () => { await hands.send({image: videoElement}); },
+            width: 1280, height: 720
+        });
+        camera.start();
     }
-
-    function detectGesture(f, lm) {
-        // Geometric OK check
-        if (Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y) < 0.05) return {name:"OK Sign", msg:"I am Okay"};
-        
-        const map = {
-            "0,0,0,0,0": {name:"Fist", msg:"Holding..."},
-            "1,1,1,1,1": {name:"Open Palm", msg:"Hello Nurse"},
-            "0,1,0,0,0": {name:"1 Finger", msg:"One"},
-            "0,1,1,0,0": {name:"Victory", msg:"Need Water"},
-            "0,1,1,1,0": {name:"3 Fingers", msg:"Three"},
-            "1,0,0,0,0": {name:"Thumb Up", msg:"Yes"},
-            "1,0,0,0,1": {name:"Phone", msg:"Call Doctor"},
-            "0,0,0,0,1": {name:"Pinky", msg:"Washroom"},
-            "1,1,0,0,0": {name:"L-Shape", msg:"Lights On"},
-            "1,1,0,0,1": {name:"Spider", msg:"Family Call"}
-        };
-        return map[f.join(",")] || {name:"Unknown", msg:"Scanning..."};
-    }
-
-    // Start
-    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-    hands.setOptions({maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7});
-    hands.onResults(onResults);
-
-    const camera = new Camera(videoElement, {
-        onFrame: async () => { await hands.send({image: videoElement}); },
-        width: 1280, height: 720
-    });
-    camera.start();
-
 </script>
 </body>
 </html>
