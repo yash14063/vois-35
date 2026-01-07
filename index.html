@@ -57,7 +57,7 @@
         #view-dashboard { grid-template-columns: 300px 1fr 350px; gap: 25px; }
         #view-history { grid-template-columns: 1fr 350px; gap: 25px; }
 
-        /* PANELS & WIDGETS */
+        /* PANELS */
         .panel { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); height: fit-content; }
         .panel-title { font-size: 1.3rem; font-weight: 700; color: var(--dark); margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border); }
         
@@ -66,10 +66,10 @@
         .status-value { font-size: 1.2rem; font-weight: 700; color: var(--dark); }
 
         /* CAMERA & LOGS */
-        .live-feed { background: var(--dark); border-radius: 12px; height: 350px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 25px; }
+        .live-feed { background: var(--dark); border-radius: 12px; height: 350px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 25px; position: relative; }
         video { display: none; } /* Hide raw video */
         canvas { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-
+        
         .message-box { padding: 25px; border-radius: 12px; text-align: center; font-size: 1.8rem; font-weight: 700; margin-bottom: 25px; transition: all 0.3s; background: var(--light); }
         .message-emergency { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
@@ -86,7 +86,7 @@
         .tag-critical { background: #fee2e2; color: #ef4444; }
         .tag-normal { background: #d1fae5; color: #10b981; }
 
-        /* PATIENT PROFILE */
+        /* PROFILE */
         .profile-header { display: flex; gap: 20px; align-items: center; margin-bottom: 20px; }
         .profile-img { width: 80px; height: 80px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; font-weight: bold; }
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -98,6 +98,8 @@
         .emergency-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(239, 68, 68, 0.95); z-index: 9999; align-items: center; justify-content: center; }
         .emergency-overlay.active { display: flex; }
         .btn-dismiss { padding: 20px 40px; background: white; color: var(--danger); border: none; border-radius: 12px; font-size: 1.2rem; font-weight: 700; cursor: pointer; }
+
+        .sim-badge { position: absolute; top: 10px; right: 10px; background: #f59e0b; color: white; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; display: none; }
 
         @media (max-width: 1200px) { #view-dashboard, #view-history, .auth-container { grid-template-columns: 1fr; } .auth-left { display: none; } }
     </style>
@@ -164,6 +166,7 @@
             <div class="panel">
                 <h2 class="panel-title">📹 AI Vision Feed</h2>
                 <div class="live-feed">
+                    <div class="sim-badge" id="simBadge">SIMULATION MODE</div>
                     <video id="input_video"></video>
                     <canvas id="output_canvas"></canvas>
                 </div>
@@ -172,8 +175,7 @@
 
             <div class="panel">
                 <h2 class="panel-title">📊 Real-Time Log</h2>
-                <div class="log-container" id="realTimeLog">
-                    </div>
+                <div class="log-container" id="realTimeLog"></div>
                 <div style="margin-top:20px; height: 150px;">
                     <canvas id="gestureChart"></canvas>
                 </div>
@@ -185,10 +187,7 @@
                 <h2 class="panel-title">🏥 Patient Medical Profile</h2>
                 <div class="profile-header">
                     <div class="profile-img">AS</div>
-                    <div>
-                        <h2 style="color:var(--dark)">Alex Smith</h2>
-                        <p style="color:var(--text-light)">ID: #9921-A | Room: 104</p>
-                    </div>
+                    <div><h2 style="color:var(--dark)">Alex Smith</h2><p style="color:var(--text-light)">ID: #9921-A | Room: 104</p></div>
                 </div>
                 <div class="info-grid">
                     <div class="info-box"><div class="info-label">Condition</div><div class="info-val">Post-Op Recovery</div></div>
@@ -202,7 +201,6 @@
                     <tbody>
                         <tr><td>Oct 24, 2025</td><td>Surgery</td><td>Successful Appendectomy</td></tr>
                         <tr><td>Oct 25, 2025</td><td>Observation</td><td>Vitals stable. Alertness: High</td></tr>
-                        <tr><td>Oct 26, 2025</td><td>Therapy</td><td>Mobility exercises started</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -213,7 +211,6 @@
                     <tbody>
                         <tr><td>Today</td><td>0</td><td><span class="tag tag-normal">Active</span></td></tr>
                         <tr><td>Yesterday</td><td>2</td><td><span class="tag tag-critical">SOS Logged</span></td></tr>
-                        <tr><td>Oct 24</td><td>0</td><td><span class="tag tag-normal">Normal</span></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -229,30 +226,26 @@
     </div>
 
     <script>
-        // --- 1. STATE & CONFIG ---
+        // --- CONFIG & STATE ---
         const videoElement = document.getElementById('input_video');
         const canvasElement = document.getElementById('output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
-        
-        // UI Refs
         const gstText = document.getElementById('currentGestureText');
         const msgBox = document.getElementById('messageBox');
         const realTimeLog = document.getElementById('realTimeLog');
         const emergencyOverlay = document.getElementById('emergencyOverlay');
+        const simBadge = document.getElementById('simBadge');
 
         let lastSpoken = "";
         let isSosActive = false;
         let chartInstance = null;
+        let isSimulation = false; // Flag for fallback mode
 
         const chartData = {
             labels: ['Water', 'Meds', 'Help', 'Yes/No'],
-            datasets: [{
-                data: [0, 0, 0, 0],
-                backgroundColor: ['#6366f1', '#10b981', '#ef4444', '#f59e0b']
-            }]
+            datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#6366f1', '#10b981', '#ef4444', '#f59e0b'] }]
         };
 
-        // --- 2. GESTURE MAP ---
         const gestureMap = {
             "0,0,0,0,0": { name: "Fist", msg: "Stop / Wait", type: "stop" },
             "1,1,1,1,1": { name: "Open Palm", msg: "Hello", type: "normal" },
@@ -264,12 +257,19 @@
             "0,0,1,1,1": { name: "OK Sign", msg: "I am Okay", type: "ok" }
         };
 
-        // --- 3. APP LOGIC ---
+        const simGestures = [
+            { name: "Victory", msg: "Water", type: "water" },
+            { name: "Point", msg: "Medicine", type: "med" },
+            { name: "Thumb Up", msg: "Yes", type: "yes" },
+            { name: "Gun", msg: "Chest Pain", type: "pain" }
+        ];
+
+        // --- HANDLERS ---
         function handleLogin(e) {
             e.preventDefault();
             document.getElementById('authPage').style.display = 'none';
             document.getElementById('dashboardPage').classList.add('active');
-            speak("System Active. Starting Camera.");
+            speak("System Active.");
             initChart();
             startCamera();
         }
@@ -296,7 +296,7 @@
             else if(text.includes("Medicine")) chartData.datasets[0].data[1]++;
             else if(text.includes("Pain")) chartData.datasets[0].data[2]++;
             else chartData.datasets[0].data[3]++;
-            chartInstance.update();
+            if(chartInstance) chartInstance.update();
         }
 
         function dismissEmergency() {
@@ -305,7 +305,34 @@
             window.speechSynthesis.cancel();
         }
 
-        // --- 4. MEDIA PIPE LOGIC ---
+        // --- SIMULATION MODE (FALLBACK) ---
+        function startSimulation() {
+            console.log("Starting Simulation Mode");
+            isSimulation = true;
+            simBadge.style.display = "block";
+            
+            setInterval(() => {
+                if(isSosActive) return;
+                const g = simGestures[Math.floor(Math.random() * simGestures.length)];
+                
+                gstText.innerText = g.name;
+                msgBox.innerText = g.msg;
+                
+                if(g.type === 'pain') {
+                    msgBox.className = "message-box message-emergency";
+                    if(Math.random() > 0.7) { // Random chance to trigger SOS
+                        isSosActive = true;
+                        emergencyOverlay.classList.add('active');
+                        window.speechSynthesis.speak(new SpeechSynthesisUtterance("Emergency Alert"));
+                    }
+                } else {
+                    msgBox.className = "message-box message-request";
+                }
+                speak(g.msg);
+            }, 4000);
+        }
+
+        // --- REAL AI LOGIC ---
         function onResults(results) {
             canvasElement.width = videoElement.videoWidth;
             canvasElement.height = videoElement.videoHeight;
@@ -320,7 +347,6 @@
                 drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: '#6366f1', lineWidth: 4});
                 drawLandmarks(canvasCtx, lm, {color: '#ef4444', lineWidth: 2, radius: 4});
 
-                // Detect
                 let fingers = [];
                 if (handedness === 'Right') fingers.push(lm[4].x < lm[3].x ? 1 : 0);
                 else fingers.push(lm[4].x > lm[3].x ? 1 : 0);
@@ -349,33 +375,24 @@
             canvasCtx.restore();
         }
 
-        // --- 5. ROBUST CAMERA START (CRITICAL FIX) ---
         async function startCamera() {
             try {
-                // Ensure browser support
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error("Browser API not supported");
-                }
-
                 const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
                 hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
                 hands.onResults(onResults);
                 
-                // Explicitly request permission first
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 videoElement.srcObject = stream;
                 videoElement.play();
 
-                // Attach MediaPipe
                 const camera = new Camera(videoElement, {
                     onFrame: async () => { await hands.send({image: videoElement}); },
                     width: 640, height: 480
                 });
                 await camera.start();
-                console.log("Camera started");
             } catch (err) {
-                console.error(err);
-                alert("CAMERA ERROR: " + err.message + "\n\nPlease click the Lock icon in your address bar and Allow Camera.");
+                console.error("Camera failed, switching to Simulation Mode", err);
+                startSimulation(); // Fallback if camera fails
             }
         }
 
@@ -388,7 +405,7 @@
             });
         }
 
-        // --- 6. UI UTILS ---
+        // --- UTILS ---
         function switchAuth(t) {
             document.querySelectorAll('.auth-tab').forEach(x=>x.classList.remove('active'));
             document.querySelectorAll('.auth-form').forEach(x=>x.classList.remove('active'));
@@ -404,7 +421,6 @@
         function switchView(viewId, btn) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            
             document.getElementById('view-' + viewId).classList.add('active');
             btn.classList.add('active');
         }
