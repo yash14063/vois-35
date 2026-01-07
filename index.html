@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Gesture Dashboard</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <style>
+        /* DASHBOARD STYLING */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+        }
+
+        h1 { margin: 10px 0; font-size: 1.5rem; color: #00d2ff; text-transform: uppercase; letter-spacing: 2px; }
+
+        .dashboard {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            padding: 20px;
+            background: #1e1e1e;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* VIDEO CONTAINER */
+        .video-container {
+            position: relative;
+            width: 640px;
+            height: 480px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #333;
+            background: #000;
+        }
+
+        video { display: none; } /* Hide raw video */
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1); /* Mirror effect */
+        }
+
+        /* STATUS PANEL */
+        .status-panel {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .card {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #00d2ff;
+        }
+
+        .card h3 { margin: 0 0 5px 0; font-size: 0.9rem; color: #aaa; }
+        .card p { margin: 0; font-size: 1.5rem; font-weight: bold; }
+
+        /* SOS ALERT STYLES */
+        .sos-active {
+            background-color: #ff0000 !important;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #aaa; }
+    </style>
+</head>
+<body>
+
+    <h1>AI Gesture Security Dashboard</h1>
+
+    <div class="dashboard">
+        <div class="video-container">
+            <div class="loading" id="loader">Loading AI Models...</div>
+            <video id="input_video"></video>
+            <canvas id="output_canvas" width="640" height="480"></canvas>
+        </div>
+
+        <div class="status-panel">
+            <div class="card">
+                <h3>Detected Gesture</h3>
+                <p id="gesture_name">Scanning...</p>
+            </div>
+            
+            <div class="card">
+                <h3>Message</h3>
+                <p id="message_text">Waiting...</p>
+            </div>
+
+            <div class="card" id="sos_card" style="border-left-color: #ff4444;">
+                <h3>Security Status</h3>
+                <p id="sos_status">Safe</p>
+            </div>
+            
+            <div class="card">
+                <h3>Confidence</h3>
+                <p id="confidence_level">--</p>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- CONFIGURATION ---
+    const videoElement = document.getElementById('input_video');
+    const canvasElement = document.getElementById('output_canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    const loader = document.getElementById('loader');
+
+    // UI Elements
+    const uiGesture = document.getElementById('gesture_name');
+    const uiMessage = document.getElementById('message_text');
+    const uiSos = document.getElementById('sos_status');
+    const uiSosCard = document.getElementById('sos_card');
+    const uiConfidence = document.getElementById('confidence_level');
+
+    // --- LOGIC STATE ---
+    let lastGesture = "";
+    let fistStartTime = null;
+    const SOS_HOLD_TIME = 2000; // 2 seconds in ms
+
+    // --- UTILITIES ---
+    function calcDistance(p1, p2) {
+        return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    }
+
+    // --- FINGER STATE DETECTION (Ported from Python) ---
+    function getFingerState(landmarks, handedness) {
+        const fingers = [];
+        const tips = [8, 12, 16, 20]; // Index, Middle, Ring, Pinky
+
+        // 1. Thumb Logic (Depends on Left vs Right hand)
+        // Note: MediaPipe JS 'Right' means the hand appears on the right side of the image (which is user's left hand if mirrored)
+        // We will stick to simple x-coordinate check relative to knuckle (landmark 3)
+        
+        let isRightHand = handedness === 'Right';
+        
+        // Correct for mirrored canvas: 
+        // If mirrored, Right Hand thumb (4) should be to the LEFT of knuckle (3) to be open? 
+        // Let's simplify: Check if thumb tip is "farther out" from the palm center logic.
+        
+        // Using simple X comparison adapted for mirrored view:
+        if (isRightHand) {
+            fingers.push(landmarks[4].x < landmarks[3].x ? 1 : 0);
+        } else {
+            fingers.push(landmarks[4].x > landmarks[3].x ? 1 : 0);
+        }
+
+        // 2. Other 4 Fingers (Y-axis check is consistent)
+        // Tip (id) should be HIGHER (smaller y) than PIP joint (id-2)
+        for (let tip of tips) {
+            fingers.push(landmarks[tip].y < landmarks[tip - 2].y ? 1 : 0);
+        }
+
+        return fingers;
+    }
+
+    // --- GESTURE MAPPING (Ported Exactly) ---
+    function detectGesture(fingers, landmarks) {
+        const state = fingers.join(",");
+        
+        // 1. Special Geometric Gestures
+        const distThumbIndex = calcDistance(landmarks[4], landmarks[8]);
+        if (distThumbIndex < 0.05) {
+            return { name: "OK Sign", msg: "I am Okay" };
+        }
+
+        // Thumbs Down Check
+        // Fingers closed (except thumb maybe) + Thumb Tip is BELOW Thumb IP (pointing down)
+        // Simplified: just check if thumb tip is lower than knuckle and other fingers closed
+        // Implementation of specific Python logic: if fingers[1:] == [0,0,0,0] and lm[4].y > lm[3].y
+        if (fingers.slice(1).join(",") === "0,0,0,0" && landmarks[4].y > landmarks[3].y) {
+            return { name: "Thumbs Down", msg: "No" };
+        }
+
+        // 2. Dictionary Map
+        const map = {
+            "0,0,0,0,0": { name: "Fist", msg: "Holding..." },
+            "1,1,1,1,1": { name: "Open Palm", msg: "Hello" },
+            "0,1,0,0,0": { name: "1 Finger", msg: "One" },
+            "0,1,1,0,0": { name: "Victory", msg: "Two" },
+            "0,1,1,1,0": { name: "3 Fingers", msg: "Three" },
+            "0,1,1,1,1": { name: "4 Fingers", msg: "Four" },
+            "1,1,1,1,0": { name: "4+Thumb", msg: "Five" },
+            "1,0,0,0,0": { name: "Thumb Up", msg: "Yes" },
+            "0,0,0,0,1": { name: "Pinky Up", msg: "I need the Washroom" },
+            "1,1,0,0,0": { name: "L-Shape", msg: "Turn on Lights" },
+            "1,0,0,0,1": { name: "Phone Hand", msg: "Call the Doctor" },
+            "0,1,0,0,1": { name: "Rock Sign", msg: "Turn on TV" },
+            "1,1,0,0,1": { name: "Spider-Man", msg: "I Love You" },
+            "1,1,1,0,0": { name: "Gun Shape", msg: "I have Pain" },
+            "0,1,1,0,1": { name: "Unique", msg: "I am Hungry" },
+            "1,0,1,1,1": { name: "OK Hand", msg: "Perfect" }
+        };
+
+        return map[state] || { name: "Unknown", msg: "Scanning..." };
+    }
+
+    // --- MAIN LOOP ---
+    function onResults(results) {
+        loader.style.display = 'none';
+        
+        canvasCtx.save();
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            // Get the first hand
+            const landmarks = results.multiHandLandmarks[0];
+            const handedness = results.multiHandedness[0].label;
+            
+            // Draw Skeleton
+            drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00d2ff', lineWidth: 4});
+            drawLandmarks(canvasCtx, landmarks, {color: '#ff0000', lineWidth: 2});
+
+            // Logic
+            const fingers = getFingerState(landmarks, handedness);
+            const result = detectGesture(fingers, landmarks);
+            
+            // Update UI
+            uiGesture.innerText = result.name;
+            uiMessage.innerText = result.msg;
+            uiConfidence.innerText = Math.round(results.multiHandedness[0].score * 100) + "%";
+
+            // SOS LOGIC
+            if (result.name === "Fist") {
+                if (!fistStartTime) fistStartTime = Date.now();
+                
+                const elapsed = Date.now() - fistStartTime;
+                const countdown = Math.ceil((SOS_HOLD_TIME - elapsed) / 1000);
+                
+                if (elapsed > SOS_HOLD_TIME) {
+                    uiSos.innerText = "EMERGENCY SOS";
+                    uiSosCard.classList.add("sos-active");
+                } else {
+                    uiSos.innerText = `Sending in ${countdown}s...`;
+                }
+            } else {
+                fistStartTime = null;
+                uiSos.innerText = "Safe";
+                uiSosCard.classList.remove("sos-active");
+            }
+        } else {
+            uiGesture.innerText = "No Hand";
+            uiMessage.innerText = "--";
+            uiSos.innerText = "Safe";
+            uiSosCard.classList.remove("sos-active");
+        }
+
+        canvasCtx.restore();
+    }
+
+    // --- INITIALIZATION ---
+    const hands = new Hands({locateFile: (file) => {
+        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+    }});
+
+    hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.5
+    });
+
+    hands.onResults(onResults);
+
+    const camera = new Camera(videoElement, {
+        onFrame: async () => {
+            await hands.send({image: videoElement});
+        },
+        width: 640,
+        height: 480
+    });
+
+    camera.start();
+</script>
+
+</body>
+</html>
