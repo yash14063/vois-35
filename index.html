@@ -1,11 +1,9 @@
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VisionCare - Medical Command Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VisionCare - Mobile Medical Unit</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
 
     <style>
-        /* --- ORIGINAL PURPLE THEME --- */
+        /* --- THEME & LAYOUT --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { 
             --primary: #6366f1; --primary-dark: #4f46e5; 
@@ -24,178 +22,167 @@
             --dark: #1e293b; --light: #f8fafc; --border: #e2e8f0; 
             --text: #334155; --text-light: #64748b; 
         }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; color: var(--text); }
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; min-height: 100vh; color: var(--text); overflow-x: hidden; }
         
         /* AUTH SCREEN */
-        .auth-container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; max-width: 900px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; z-index: 2000; position: fixed; inset: 0; margin: auto; height: 600px; }
-        .auth-left { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); padding: 60px 40px; color: white; display: flex; flex-direction: column; justify-content: center; }
-        .auth-right { padding: 60px 40px; background: white; display: flex; flex-direction: column; justify-content: center; }
-        .form-group { margin-bottom: 20px; text-align: left; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
-        .form-group input { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; }
-        .btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .btn:hover { background: var(--primary-dark); }
+        .auth-container { background: white; position: fixed; inset: 0; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .auth-box { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+        .form-group input { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; }
+        .btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 10px; }
 
         /* DASHBOARD */
-        .dashboard { display: none; background: #f1f5f9; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; flex-direction: column; }
+        .dashboard { display: none; flex-direction: column; height: 100vh; }
         .dashboard.active { display: flex; }
         
         /* NAVBAR */
-        .navbar { background: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; }
-        .navbar-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-        .nav-tabs { display: flex; gap: 10px; background: #f1f5f9; padding: 5px; border-radius: 10px; }
-        .nav-tab { padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-light); transition: 0.3s; }
-        .nav-tab:hover { background: white; }
-        .nav-tab.active { background: var(--primary); color: white; shadow: 0 2px 5px rgba(0,0,0,0.1); }
-
-        /* CONTENT AREA */
-        .main-content { flex: 1; padding: 20px; overflow-y: auto; }
+        .navbar { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .navbar-brand { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
         
-        /* VIEWS */
-        .view-section { display: none; gap: 20px; height: 100%; }
-        .view-section.active { display: grid; }
+        /* TABS */
+        .sub-nav { background: white; padding: 10px 20px; display: flex; gap: 10px; overflow-x: auto; border-bottom: 1px solid var(--border); }
+        .nav-link { padding: 8px 16px; border-radius: 20px; background: #f1f5f9; color: var(--text-light); font-weight: 600; font-size: 0.9rem; white-space: nowrap; cursor: pointer; transition: 0.3s; }
+        .nav-link.active { background: var(--primary); color: white; }
 
-        /* SPECIFIC LAYOUTS */
-        #view-monitor { grid-template-columns: 280px 1fr 300px; }
-        #view-analytics { grid-template-columns: 1fr 1fr; }
-        #view-history { display: block; } /* Full width stacking */
+        /* CONTENT */
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; }
+        .view-section { display: none; gap: 20px; }
+        .view-section.active { display: grid; grid-template-columns: 1fr; } /* Mobile First Default */
 
         /* PANELS */
-        .panel { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; }
-        .panel-title { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; display: flex; justify-content: space-between; }
+        .panel { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); margin-bottom: 20px; }
+        .panel-title { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* WIDGETS */
-        .status-card { background: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid var(--primary); }
-        .status-label { font-size: 0.8rem; color: var(--text-light); font-weight: 600; text-transform: uppercase; }
-        .status-val { font-size: 1.2rem; font-weight: 700; color: var(--dark); }
-
-        /* CAMERA */
-        .camera-box { background: black; border-radius: 12px; position: relative; overflow: hidden; flex: 1; display: flex; align-items: center; justify-content: center; min-height: 400px; }
+        /* CAMERA FIX */
+        .live-feed { 
+            background: #000; border-radius: 12px; overflow: hidden; position: relative; 
+            width: 100%; aspect-ratio: 4/3; /* Fixed aspect ratio for mobile */
+            display: flex; align-items: center; justify-content: center;
+            border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
         video { position: absolute; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
         canvas { position: absolute; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); z-index: 10; }
-        .cam-overlay { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: white; padding: 8px 16px; border-radius: 20px; z-index: 20; font-size: 0.9rem; }
+        
+        .voice-btn { position: absolute; top: 10px; right: 10px; z-index: 20; background: rgba(255,255,255,0.9); padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; border: none; font-weight: bold; cursor: pointer; }
 
-        /* GESTURE GRID */
-        .gesture-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; overflow-y: auto; }
-        .g-card { background: #f8fafc; padding: 10px; border-radius: 8px; text-align: center; border: 2px solid transparent; transition: 0.2s; }
-        .g-card.active { border-color: var(--primary); background: #e0e7ff; }
-        .g-icon { font-size: 1.5rem; display: block; }
+        /* WIDGETS */
+        .status-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .status-card { background: #f8fafc; padding: 12px; border-radius: 10px; border-left: 3px solid var(--primary); }
+        .status-label { font-size: 0.75rem; color: var(--text-light); text-transform: uppercase; font-weight: 700; }
+        .status-val { font-size: 1.1rem; font-weight: 700; color: var(--dark); }
+
+        .message-box { padding: 15px; border-radius: 10px; text-align: center; font-size: 1.2rem; font-weight: 700; background: #e0e7ff; color: var(--primary); margin-top: 10px; transition: 0.3s; }
+        .message-emergency { background: #fee2e2; color: #ef4444; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } }
 
         /* BODY TWIN */
-        .body-wrapper { display: flex; justify-content: center; align-items: center; height: 400px; background: #f8fafc; border-radius: 20px; position: relative; }
-        .body-outline { width: 120px; height: 300px; border: 3px solid #cbd5e1; border-radius: 40px; position: relative; background: white; }
+        .body-wrapper { height: 300px; display: flex; justify-content: center; align-items: center; background: #f8fafc; border-radius: 15px; margin-bottom: 15px; }
+        .body-outline { width: 100px; height: 260px; border: 3px solid #cbd5e1; border-radius: 30px; position: relative; background: white; }
         .organ { position: absolute; background: #e2e8f0; border: 1px solid #94a3b8; transition: 0.3s; }
-        .head { top: 10px; left: 30px; width: 60px; height: 60px; border-radius: 50%; }
-        .chest { top: 80px; left: 20px; width: 80px; height: 80px; border-radius: 20px; }
-        .stomach { top: 170px; left: 30px; width: 60px; height: 60px; border-radius: 15px; }
+        .head { top: 10px; left: 25px; width: 50px; height: 50px; border-radius: 50%; }
+        .chest { top: 70px; left: 15px; width: 70px; height: 70px; border-radius: 15px; }
+        .stomach { top: 150px; left: 25px; width: 50px; height: 50px; border-radius: 15px; }
         .pain-active { background: #ef4444; border-color: #991b1b; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
 
-        /* HISTORY TABLE */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; padding: 12px; background: #f1f5f9; color: var(--text-light); font-size: 0.9rem; }
-        td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 0.95rem; }
-        
-        /* SOS */
-        #sos-overlay { position: fixed; inset: 0; background: rgba(220, 38, 38, 0.95); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
-        .sos-active { display: flex !important; animation: shake 0.5s infinite; }
-        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        /* LOGS */
+        .log-container { max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 5px; }
+        .log-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+        .rec-text { display: block; font-size: 0.75rem; color: var(--success); font-style: italic; margin-top: 2px; }
 
+        /* DESKTOP OVERRIDES */
+        @media (min-width: 1024px) {
+            .view-section.active { grid-template-columns: 300px 1fr 350px; }
+            #view-analytics { grid-template-columns: 1fr 1fr; }
+            .live-feed { height: 400px; }
+        }
+        
+        #sos-overlay { position: fixed; inset: 0; background: rgba(220, 38, 38, 0.95); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; }
     </style>
 </head>
 <body>
 
     <div class="auth-container" id="authPage">
-        <div class="auth-left">
-            <h1>🎯 VisionCare</h1>
-            <p style="margin-top:10px; opacity:0.9;">AI-Powered Patient Monitoring System</p>
-            <div style="margin-top:30px;">
-                <p>✅ Gesture Recognition</p>
-                <p>✅ Body Analytics</p>
-                <p>✅ Medical History</p>
-            </div>
-        </div>
-        <div class="auth-right">
-            <h2 style="margin-bottom:20px; color:var(--dark)">Medical Login</h2>
-            <div class="form-group">
-                <label>Doctor ID</label>
-                <input type="text" value="DR-CHEN-9921" readonly>
-            </div>
-            <div class="form-group">
-                <label>Access Key</label>
-                <input type="password" value="********" readonly>
-            </div>
-            <button class="btn" onclick="handleLogin()">Access Dashboard</button>
+        <div class="auth-box">
+            <h1 style="color:var(--primary); margin-bottom:10px;">🎯 VisionCare</h1>
+            <p style="color:var(--text-light); margin-bottom:20px;">Mobile Medical Command</p>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>ID</label>
+                    <input type="text" value="Dr. Chen" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Pin</label>
+                    <input type="password" value="1234" readonly>
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
         </div>
     </div>
 
     <div class="dashboard" id="dashboardPage">
         
         <div class="navbar">
-            <div class="navbar-brand"><i class="fas fa-eye"></i> VisionCare Pro</div>
-            
-            <div class="nav-tabs">
-                <div class="nav-tab active" onclick="switchTab('monitor', this)">📡 Monitor</div>
-                <div class="nav-tab" onclick="switchTab('analytics', this)">📊 Analytics</div>
-                <div class="nav-tab" onclick="switchTab('history', this)">📋 History</div>
-            </div>
+            <div class="navbar-brand"><i class="fas fa-heartbeat"></i> VisionCare</div>
+            <button onclick="location.reload()" style="background:none; border:none; color:var(--danger); font-weight:bold;">Exit</button>
+        </div>
 
-            <div style="display:flex; align-items:center; gap:10px;">
-                <span style="font-weight:600">Dr. Emily Chen</span>
-                <button onclick="location.reload()" style="background:#fee2e2; color:#ef4444; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">Logout</button>
-            </div>
+        <div class="sub-nav">
+            <div class="nav-link active" onclick="switchTab('monitor', this)">📡 Live Monitor</div>
+            <div class="nav-link" onclick="switchTab('analytics', this)">📈 Charts & Body</div>
+            <div class="nav-link" onclick="switchTab('history', this)">📋 History</div>
         </div>
 
         <div class="main-content">
 
             <div id="view-monitor" class="view-section active">
+                
+                <div class="panel">
+                    <div class="panel-title">
+                        <span>AI Vision Feed</span>
+                        <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">🔊 ON</button>
+                    </div>
+                    
+                    <div class="live-feed">
+                        <video id="input_video" playsinline autoplay muted></video>
+                        <canvas id="output_canvas"></canvas>
+                        <div id="cam-loading" style="position:absolute; color:white; background:rgba(0,0,0,0.5); padding:5px 10px; border-radius:10px;">Starting Camera...</div>
+                    </div>
+                    
+                    <button onclick="forceStartCamera()" style="width:100%; padding:10px; background:#e2e8f0; border:none; border-radius:8px; margin-top:10px; font-weight:600; color:var(--text);">🔄 Restart Camera (Fix)</button>
+                    
+                    <div class="message-box" id="messageBox">Scanning...</div>
+                </div>
+
                 <div class="panel">
                     <div class="panel-title">Real-Time Vitals</div>
-                    <div class="status-card">
-                        <div class="status-label">Heart Rate</div>
-                        <div class="status-val" style="color:#ef4444">72 BPM</div>
-                    </div>
-                    <div class="status-card">
-                        <div class="status-label">SpO2</div>
-                        <div class="status-val" style="color:#3b82f6">98%</div>
+                    <div class="status-row">
+                        <div class="status-card">
+                            <div class="status-label">Heart Rate</div>
+                            <div class="status-val" style="color:#ef4444">72 BPM</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">SpO2</div>
+                            <div class="status-val" style="color:#3b82f6">98%</div>
+                        </div>
                     </div>
                     <div class="status-card">
                         <div class="status-label">Active Gesture</div>
                         <div class="status-val" id="live-gesture">--</div>
                     </div>
-                    <div class="status-card" style="margin-top:auto">
-                        <div class="status-label">Emergency Status</div>
-                        <div class="status-val" id="sos-status" style="color:#10b981">Normal</div>
-                    </div>
                 </div>
 
                 <div class="panel">
-                    <div class="panel-title">
-                        <span>Live Feed</span>
-                        <button onclick="toggleVoice()" id="voiceBtn" style="font-size:0.8rem; padding:5px 10px; border:1px solid #ccc; background:white; border-radius:15px; cursor:pointer;">🔊 Voice ON</button>
-                    </div>
-                    <div class="camera-box">
-                        <video id="input_video" playsinline autoplay muted></video>
-                        <canvas id="output_canvas"></canvas>
-                        <div class="cam-overlay" id="cam-msg">Scanning...</div>
-                    </div>
-                    <button onclick="startCamera()" style="margin-top:10px; background:#f1f5f9; border:none; padding:8px; border-radius:5px; cursor:pointer; color:#64748b;">Force Start Camera</button>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-title">Gesture Guide</div>
-                    <div class="gesture-grid" id="gesture-grid">
-                        </div>
-                    <div style="margin-top:20px; flex:1; overflow-y:auto; border-top:2px solid #f1f5f9; padding-top:10px;">
-                        <div class="panel-title">Quick Log</div>
-                        <div id="quick-log" style="font-size:0.85rem; color:var(--text-light);"></div>
-                    </div>
+                    <div class="panel-title">AI Recommendation Log</div>
+                    <div class="log-container" id="quick-log"></div>
                 </div>
             </div>
 
             <div id="view-analytics" class="view-section">
+                
                 <div class="panel">
-                    <div class="panel-title">🩻 Body Analytics (Digital Twin)</div>
-                    <div style="display:flex; gap:20px;">
+                    <div class="panel-title">🩻 Body Status</div>
+                    <div style="display:flex; gap:15px;">
                         <div class="body-wrapper" style="flex:1">
                             <div class="body-outline">
                                 <div id="organ-head" class="organ head"></div>
@@ -205,69 +192,50 @@
                         </div>
                         <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
                             <div class="status-card">
-                                <div class="status-label">Pain Location</div>
-                                <div class="status-val" id="pain-loc">None</div>
+                                <div class="status-label">Diagnosis</div>
+                                <div class="status-val" id="sys-diag" style="font-size:1rem; color:#10b981">Stable</div>
                             </div>
-                            <div class="status-card">
-                                <div class="status-label">System Diagnosis</div>
-                                <div class="status-val" id="sys-diag" style="color:#10b981">Stable</div>
+                            <div style="font-size:0.8rem; color:var(--text-light); margin-top:10px;">
+                                * Areas light up red when pain is detected.
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="panel">
-                    <div class="panel-title">📈 Patient Intake</div>
-                    <div style="height:250px"><canvas id="intakeChart"></canvas></div>
-                    <div style="display:flex; justify-content:space-around; margin-top:20px; text-align:center;">
-                        <div>
-                            <div style="font-size:1.5rem; font-weight:bold; color:#3b82f6" id="val-water">0</div>
-                            <div style="font-size:0.8rem">Water (ml)</div>
-                        </div>
-                        <div>
-                            <div style="font-size:1.5rem; font-weight:bold; color:#f59e0b" id="val-food">0</div>
-                            <div style="font-size:0.8rem">Meals</div>
-                        </div>
-                        <div>
-                            <div style="font-size:1.5rem; font-weight:bold; color:#10b981" id="val-meds">0</div>
-                            <div style="font-size:0.8rem">Meds</div>
-                        </div>
+                    <div class="panel-title">📈 Intake Tracker</div>
+                    <div style="position: relative; height: 250px; width: 100%;">
+                        <canvas id="intakeChart"></canvas>
+                    </div>
+                    <div style="display:flex; justify-content:space-around; margin-top:15px; font-size:0.9rem;">
+                        <div>💧 <span id="val-water">0</span> ml</div>
+                        <div>💊 <span id="val-meds">0</span> doses</div>
                     </div>
                 </div>
             </div>
 
             <div id="view-history" class="view-section">
-                <div class="panel" style="margin-bottom:20px;">
-                    <div class="panel-title">🏥 Patient Profile</div>
-                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:20px;">
-                        <div>
-                            <div style="color:var(--text-light); font-size:0.9rem;">Patient Name</div>
-                            <div style="font-weight:bold; font-size:1.2rem;">Alex Smith</div>
-                        </div>
-                        <div>
-                            <div style="color:var(--text-light); font-size:0.9rem;">ID Number</div>
-                            <div style="font-weight:bold; font-size:1.2rem;">#PT-8922</div>
-                        </div>
-                        <div>
-                            <div style="color:var(--text-light); font-size:0.9rem;">Blood Type</div>
-                            <div style="font-weight:bold; font-size:1.2rem;">O+</div>
-                        </div>
-                        <div>
-                            <div style="color:var(--text-light); font-size:0.9rem;">Allergies</div>
-                            <div style="font-weight:bold; font-size:1.2rem; color:#ef4444">Penicillin</div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="panel">
-                    <div class="panel-title">📋 Comprehensive Event History</div>
-                    <table>
+                    <div class="panel-title">Patient History</div>
+                    <div class="status-card">
+                        <div class="status-label">Name</div>
+                        <div class="status-val">Alex Smith</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-label">Condition</div>
+                        <div class="status-val">Post-Op Recovery</div>
+                    </div>
+                    
+                    <h4 style="margin-top:20px; margin-bottom:10px;">Full Event Log</h4>
+                    <table style="width:100%; border-collapse:collapse;">
                         <thead>
-                            <tr><th>Timestamp</th><th>Category</th><th>Details</th><th>Status</th></tr>
+                            <tr style="border-bottom:2px solid #eee; text-align:left;">
+                                <th style="padding:10px;">Time</th>
+                                <th style="padding:10px;">Event</th>
+                            </tr>
                         </thead>
-                        <tbody id="history-table-body">
-                            <tr><td>08:00 AM</td><td>Medication</td><td>Morning Antibiotics Administered</td><td><span style="color:#10b981">Done</span></td></tr>
-                            <tr><td>07:30 AM</td><td>Vitals</td><td>BP 120/80, Temp 98.6</td><td><span style="color:#10b981">Normal</span></td></tr>
+                        <tbody id="history-body">
+                            <tr><td style="padding:10px;">08:00</td><td>Meds Given</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -277,9 +245,9 @@
     </div>
 
     <div id="sos-overlay">
-        <h1 style="font-size:5rem; margin-bottom:20px;">🚨 SOS 🚨</h1>
-        <p style="font-size:2rem; margin-bottom:30px;">Patient Distress Signal</p>
-        <button onclick="dismissSOS()" style="padding:15px 40px; background:white; color:red; border:none; font-size:1.2rem; font-weight:bold; cursor:pointer;">ACKNOWLEDGE</button>
+        <h1>🚨 SOS 🚨</h1>
+        <p>Patient Distress Signal</p>
+        <button onclick="dismissSOS()" style="background:white; color:red; padding:10px 20px; border:none; border-radius:5px; font-weight:bold; margin-top:20px;">ACKNOWLEDGE</button>
     </div>
 
 <script>
@@ -287,143 +255,119 @@
     const videoElement = document.getElementById('input_video');
     const canvasElement = document.getElementById('output_canvas');
     const canvasCtx = canvasElement.getContext('2d');
-    
-    // UI Elements
+    const msgBox = document.getElementById('messageBox');
     const liveGesture = document.getElementById('live-gesture');
-    const camMsg = document.getElementById('cam-msg');
-    const quickLog = document.getElementById('quick-log');
+    const camLoading = document.getElementById('cam-loading');
     
-    // Body Elements
+    // Body & Analytics
     const organHead = document.getElementById('organ-head');
     const organChest = document.getElementById('organ-chest');
     const organStomach = document.getElementById('organ-stomach');
-    const painLoc = document.getElementById('pain-loc');
     const sysDiag = document.getElementById('sys-diag');
 
     let voiceMuted = false;
     let lastSpoken = "";
     let isSosActive = false;
-    let sosTimer = null;
-    let intake = { water: 0, food: 0, meds: 0 };
-    let chartInstance;
+    let intake = { water: 0, meds: 0 };
+    let chartInstance = null;
 
     // --- GESTURE DICTIONARY ---
-    const gestures = [
-        { name: "Fist", msg: "Stop / Wait", icon: "✊" },
-        { name: "Open Palm", msg: "Hello / Nurse", icon: "✋" },
-        { name: "Victory", msg: "Water", icon: "✌️" },
-        { name: "Point", msg: "Medicine", icon: "☝️" },
-        { name: "Thumb Up", msg: "Yes", icon: "👍" },
-        { name: "Thumb Down", msg: "No", icon: "👎" },
-        { name: "Pinky", msg: "Washroom", icon: "🤙" },
-        { name: "Gun", msg: "Chest Pain", icon: "💔" },
-        { name: "OK Sign", msg: "I am Okay", icon: "👌" },
-        { name: "Three", msg: "Hungry", icon: "🥘" },
-        { name: "Four", msg: "Headache", icon: "🤕" }
-    ];
+    const gestureMap = {
+        "0,0,0,0,0": { name: "Fist", msg: "Stop / Wait" },
+        "1,1,1,1,1": { name: "Open Palm", msg: "Hello / Nurse" },
+        "0,1,1,0,0": { name: "Victory", msg: "Water", rec: "Rec: Log 250ml intake" },
+        "0,1,0,0,0": { name: "Point", msg: "Medicine", rec: "Rec: Check schedule" },
+        "1,0,0,0,0": { name: "Thumb Up", msg: "Yes / Good" },
+        "0,0,0,0,1": { name: "Pinky", msg: "Washroom" },
+        "1,1,1,0,0": { name: "Gun", msg: "Chest Pain", rec: "Rec: Check ECG" },
+        "0,0,1,1,1": { name: "OK Sign", msg: "I am Okay" },
+        "0,1,1,1,1": { name: "Four", msg: "Headache", rec: "Rec: Dim lights" }
+    };
 
     // --- APP FLOW ---
-    function handleLogin() {
+    function handleLogin(e) {
+        e.preventDefault();
         document.getElementById('authPage').style.display = 'none';
         document.getElementById('dashboardPage').classList.add('active');
         initCharts();
-        renderGrid();
-        speak("Welcome Doctor.");
         startCamera();
+        speak("System Online");
     }
 
     function switchTab(viewId, tab) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
         document.getElementById('view-' + viewId).classList.add('active');
         tab.classList.add('active');
     }
 
     function toggleVoice() {
         voiceMuted = !voiceMuted;
-        document.getElementById('voiceBtn').innerText = voiceMuted ? "🔇 Voice OFF" : "🔊 Voice ON";
+        document.getElementById('voiceBtn').innerText = voiceMuted ? "🔇 OFF" : "🔊 ON";
     }
 
     // --- CORE LOGIC ---
-    function processGesture(name, msg) {
+    function processGesture(name, msg, rec) {
         liveGesture.innerText = name;
-        camMsg.innerText = msg;
+        msgBox.innerText = msg;
         
-        // Highlight Grid
-        document.querySelectorAll('.g-card').forEach(c => c.classList.remove('active'));
-        const activeCard = Array.from(document.querySelectorAll('.g-card')).find(c => c.innerText.includes(name));
-        if(activeCard) activeCard.classList.add('active');
+        if(msg.includes("Pain")) msgBox.className = "message-box message-emergency";
+        else msgBox.className = "message-box";
 
-        // Logic
         if(msg !== lastSpoken && msg !== "Scanning..." && !isSosActive) {
             lastSpoken = msg;
             if(!voiceMuted) speak(msg);
-            logEvent(name, msg);
-            updateIntake(msg);
-            updateBody(msg);
+            
+            // Log with Recommendation
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const div = document.createElement('div');
+            div.className = "log-item";
+            div.innerHTML = `<div><b>${msg}</b> <span style="color:#aaa; font-size:0.7rem">${time}</span> ${rec ? `<span class="rec-text">${rec}</span>` : ''}</div>`;
+            document.getElementById('quick-log').prepend(div);
+
+            // History Table
+            const row = document.createElement('tr');
+            row.innerHTML = `<td style="padding:10px;">${time}</td><td>${msg}</td>`;
+            document.getElementById('history-body').prepend(row);
+
+            updateAnalytics(msg);
         }
     }
 
-    function updateIntake(msg) {
-        if(msg.includes("Water")) intake.water += 1;
-        if(msg.includes("Hungry")) intake.food += 1;
-        if(msg.includes("Medicine")) intake.meds += 1;
+    function updateAnalytics(msg) {
+        // Intake
+        if(msg.includes("Water")) intake.water++;
+        if(msg.includes("Medicine")) intake.meds++;
         
         document.getElementById('val-water').innerText = intake.water * 250;
-        document.getElementById('val-food').innerText = intake.food;
         document.getElementById('val-meds').innerText = intake.meds;
         
-        chartInstance.data.datasets[0].data = [intake.water*250, intake.food*100, intake.meds*10];
-        chartInstance.update();
-    }
+        // Chart Update
+        if(chartInstance) {
+            chartInstance.data.datasets[0].data = [intake.water * 250, intake.meds * 50]; // Scaled for visibility
+            chartInstance.update();
+        }
 
-    function updateBody(msg) {
+        // Body Twin
         organHead.classList.remove('pain-active');
         organChest.classList.remove('pain-active');
-        organStomach.classList.remove('pain-active');
-        painLoc.innerText = "None";
         sysDiag.innerText = "Stable"; sysDiag.style.color="#10b981";
 
         if(msg.includes("Headache")) {
             organHead.classList.add('pain-active');
-            painLoc.innerText = "Head";
-            sysDiag.innerText = "Migraine Alert"; sysDiag.style.color="#f59e0b";
+            sysDiag.innerText = "Migraine"; sysDiag.style.color="#f59e0b";
         }
         else if(msg.includes("Chest")) {
             organChest.classList.add('pain-active');
-            painLoc.innerText = "Chest";
-            sysDiag.innerText = "CRITICAL"; sysDiag.style.color="#ef4444";
+            sysDiag.innerText = "Cardiac Alert"; sysDiag.style.color="#ef4444";
             triggerSOS();
         }
-        else if(msg.includes("Hungry")) {
-            organStomach.classList.add('pain-active');
-            painLoc.innerText = "Stomach";
-        }
-    }
-
-    function logEvent(name, msg) {
-        const time = new Date().toLocaleTimeString();
-        // Quick Log
-        const div = document.createElement('div');
-        div.style.marginBottom = "5px";
-        div.innerHTML = `<b>${time}</b>: ${msg}`;
-        quickLog.prepend(div);
-        // History Table
-        const row = document.createElement('tr');
-        let status = `<span style="color:#10b981">Logged</span>`;
-        if(msg.includes("Pain")) status = `<span style="color:#ef4444; font-weight:bold;">ALERT</span>`;
-        row.innerHTML = `<td>${time}</td><td>${name}</td><td>${msg}</td><td>${status}</td>`;
-        document.getElementById('history-table-body').prepend(row);
     }
 
     function triggerSOS() {
-        if(isSosActive) return;
         isSosActive = true;
         document.getElementById('sos-overlay').style.display = 'flex';
-        let loop = setInterval(() => {
-            if(!isSosActive) clearInterval(loop);
-            else if(!voiceMuted) window.speechSynthesis.speak(new SpeechSynthesisUtterance("Emergency Alert"));
-        }, 3000);
+        speak("Emergency Alert");
     }
 
     function dismissSOS() {
@@ -435,16 +379,30 @@
     function speak(text) { window.speechSynthesis.speak(new SpeechSynthesisUtterance(text)); }
 
     // --- CAMERA & AI ---
+    function forceStartCamera() { startCamera(); }
+
     async function startCamera() {
+        camLoading.innerText = "Requesting Camera...";
         try {
             const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
             hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5 });
             hands.onResults(onResults);
             
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            // MOBILE FIX: Use 'facingMode' to prefer front camera
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "user" } 
+            });
+            
             videoElement.srcObject = stream;
-            videoElement.onloadedmetadata = () => { videoElement.play(); processVideo(hands); };
-        } catch(e) { alert("Camera Error: " + e.message); }
+            videoElement.onloadedmetadata = () => {
+                videoElement.play();
+                camLoading.style.display = 'none';
+                processVideo(hands);
+            };
+        } catch(e) { 
+            camLoading.innerText = "Error: " + e.message;
+            alert("Camera failed. Please allow permissions."); 
+        }
     }
 
     async function processVideo(hands) {
@@ -466,49 +424,42 @@
             drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: '#6366f1', lineWidth: 4});
             drawLandmarks(canvasCtx, lm, {color: '#ef4444', lineWidth: 2});
 
-            // Logic
             let fingers = [];
             if (handedness === 'Right') fingers.push(lm[4].x < lm[3].x ? 1 : 0);
             else fingers.push(lm[4].x > lm[3].x ? 1 : 0);
             [8, 12, 16, 20].forEach(t => fingers.push(lm[t].y < lm[t-2].y ? 1 : 0));
 
-            let name = "--", msg = "Scanning...";
+            let result = { name: "--", msg: "Scanning...", rec: "" };
             
-            if(Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y) < 0.05) { name="OK Sign"; msg="I am Okay"; }
-            else {
-                const key = fingers.join(",");
-                if(key === "0,0,0,0,0") { name="Fist"; msg="Stop"; }
-                if(key === "1,1,1,1,1") { name="Open Palm"; msg="Hello"; }
-                if(key === "0,1,1,0,0") { name="Victory"; msg="Water"; }
-                if(key === "0,1,0,0,0") { name="Point"; msg="Medicine"; }
-                if(key === "1,0,0,0,0") { name="Thumb Up"; msg="Yes"; }
-                if(key === "0,0,0,0,1") { name="Pinky"; msg="Washroom"; }
-                if(key === "1,1,1,0,0") { name="Gun"; msg="Chest Pain"; }
-                if(key === "0,1,1,1,1") { name="Four"; msg="Headache"; }
-                if(key === "0,1,1,1,0") { name="Three"; msg="Hungry"; }
-            }
-            processGesture(name, msg);
+            if(Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y) < 0.05) result = gestureMap["0,0,1,1,1"];
+            else result = gestureMap[fingers.join(",")] || result;
+
+            processGesture(result.name, result.msg, result.rec);
         }
     }
 
-    // --- RENDERERS ---
-    function renderGrid() {
-        const grid = document.getElementById('gesture-grid');
-        gestures.forEach(g => {
-            grid.innerHTML += `<div class="g-card"><span class="g-icon">${g.icon}</span><div style="font-size:0.8rem; font-weight:bold;">${g.name}</div><div style="font-size:0.7rem; color:var(--text-light)">${g.msg}</div></div>`;
-        });
-    }
-
+    // --- CHART ---
     function initCharts() {
         const ctx = document.getElementById('intakeChart').getContext('2d');
         chartInstance = new Chart(ctx, {
             type: 'bar',
-            data: { labels: ['Water', 'Food', 'Meds'], datasets: [{ label: 'Today', data: [0,0,0], backgroundColor: ['#3b82f6', '#f59e0b', '#10b981'] }] },
-            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            data: { 
+                labels: ['Water (ml)', 'Meds (mg)'], 
+                datasets: [{ 
+                    label: 'Intake', 
+                    data: [0, 0], 
+                    backgroundColor: ['#3b82f6', '#10b981'],
+                    borderRadius: 5
+                }] 
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, // FIX FOR "SQUASHED" CHART
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+            }
         });
     }
 </script>
 </body>
 </html>
-
-```
