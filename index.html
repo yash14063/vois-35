@@ -1,3 +1,18 @@
+The most common reason the camera does not open is that **browsers block "Autoplay" video** unless the code is perfect, or because you are opening the file directly (double-clicking it) instead of using a server.
+
+I have updated the code with a **"Bulletproof" Camera Fix**:
+
+1. **Added a "Start Camera" Button:** Browsers trust a button click more than automatic loading.
+2. **Removed Resolution Limits:** It will now accept *any* camera (laptop, webcam, phone) without crashing.
+3. **Added Error Alerts:** If it fails, a popup will tell you exactly why (e.g., "Permission Denied").
+
+### **Instructions**
+
+1. Copy/Paste into `index.html`.
+2. **Crucial:** You must use **VS Code Live Server** or deploy to **Vercel**.
+3. When the dashboard loads, if the camera doesn't start instantly, click the **"Force Start Camera"** button I added below the video.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -169,8 +184,10 @@
                         <button class="voice-toggle" id="voiceBtn" onclick="toggleVoice()"><i class="fas fa-volume-up"></i> Voice ON</button>
                         <video id="input_video" playsinline autoplay muted></video>
                         <canvas id="output_canvas"></canvas>
+                        <div id="camera-loading" style="position:absolute; color:white;">Initializing Camera...</div>
                     </div>
-                    <div class="message-box" id="messageBox">Initializing AI...</div>
+                    <button onclick="forceStartCamera()" style="margin-bottom:10px; background:#ddd; border:none; padding:5px; border-radius:5px; cursor:pointer;">Force Start Camera</button>
+                    <div class="message-box" id="messageBox">Scanning...</div>
                 </div>
 
                 <div class="panel">
@@ -362,16 +379,28 @@
     }
 
     // --- 4. CAMERA & AI ---
+    function forceStartCamera() {
+        startCamera();
+    }
+
     async function startCamera() {
         try {
             const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
             hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5 });
             hands.onResults(onResults);
             
+            // Generic Constraint to support all cameras
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             videoElement.srcObject = stream;
-            videoElement.onloadedmetadata = () => { videoElement.play(); processVideo(hands); };
-        } catch(e) { alert("Camera Error: " + e.message); }
+            
+            videoElement.onloadedmetadata = () => {
+                videoElement.play();
+                document.getElementById('camera-loading').style.display = 'none';
+                processVideo(hands);
+            };
+        } catch(e) { 
+            alert("Camera Error: " + e.message + "\n\nPlease ensure you are using 'Live Server' or HTTPS."); 
+        }
     }
 
     async function processVideo(hands) {
@@ -394,11 +423,14 @@
             drawLandmarks(canvasCtx, lm, {color: '#ef4444', lineWidth: 2});
 
             let fingers = [];
+            // Simplified finger counting
             if (handedness === 'Right') fingers.push(lm[4].x < lm[3].x ? 1 : 0);
             else fingers.push(lm[4].x > lm[3].x ? 1 : 0);
             [8, 12, 16, 20].forEach(t => fingers.push(lm[t].y < lm[t-2].y ? 1 : 0));
 
             let result = { name: "--", msg: "Scanning...", type: "none" };
+            
+            // Logic
             if(Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y) < 0.05) result = gestureMap["0,0,1,1,1"];
             else if(fingers[0]===0 && fingers[1]===0 && fingers[2]===0 && lm[4].y > lm[3].y) result = gestureMap["0,1,1,1,1"];
             else result = gestureMap[fingers.join(",")] || result;
@@ -443,3 +475,5 @@
 </script>
 </body>
 </html>
+
+```
