@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VisionCare Pro - Medical Command Center</title>
+    <title>VisionCare - Medical Command Center</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
@@ -11,106 +14,101 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
 
     <style>
-        /* --- THEME --- */
+        /* --- ORIGINAL PURPLE/LIGHT THEME --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary: #6366f1; --primary-dark: #4f46e5; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --dark: #1e293b; --light: #f8fafc; --border: #e2e8f0; --text: #334155; --text-light: #64748b; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        :root { 
+            --primary: #6366f1; --primary-dark: #4f46e5; 
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444; 
+            --dark: #1e293b; --light: #f8fafc; --border: #e2e8f0; 
+            --text: #334155; --text-light: #64748b; 
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; color: var(--text); }
         
-        /* AUTH PAGE */
+        /* AUTH SCREEN */
         .auth-container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; max-width: 900px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; animation: slideUp 0.6s ease; z-index: 2000; position: relative; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .auth-left { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); padding: 60px 40px; color: white; display: flex; flex-direction: column; justify-content: center; }
-        .auth-left h1 { font-size: 2.5rem; margin-bottom: 20px; font-weight: 700; }
         .auth-right { padding: 60px 40px; background: white; }
         .auth-tabs { display: flex; gap: 10px; margin-bottom: 40px; border-bottom: 2px solid var(--border); }
         .auth-tab { padding: 12px 24px; background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-light); font-weight: 600; transition: all 0.3s; position: relative; }
         .auth-tab.active { color: var(--primary); }
         .auth-tab.active:after { content: ""; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: var(--primary); }
-        .auth-form { display: none; }
-        .auth-form.active { display: block; }
         .form-group { margin-bottom: 25px; }
-        .form-group label { display: block; margin-bottom: 8px; color: var(--text); font-weight: 600; font-size: 0.9rem; }
-        .form-group input { width: 100%; padding: 14px 18px; border: 2px solid var(--border); border-radius: 10px; font-size: 1rem; transition: all 0.3s; background: var(--light); }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
-        .btn-primary { background: var(--primary); color: white; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text); font-weight: 600; }
+        .form-group input { width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 1rem; background: var(--light); }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 10px; background: var(--primary); color: white; transition: 0.3s; }
+        .btn:hover { background: var(--primary-dark); }
 
-        /* DASHBOARD */
+        /* DASHBOARD LAYOUT */
         .dashboard { display: none; background: var(--light); min-height: 100vh; width: 100%; }
         .dashboard.active { display: block; }
-        .navbar { background: white; padding: 20px 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .navbar { background: white; padding: 20px 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
         .navbar-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
-        .navbar-user { display: flex; align-items: center; gap: 20px; }
         .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; }
-        .btn-logout { padding: 8px 16px; background: var(--danger); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
-
-        .sub-nav { padding: 10px 40px; background: white; border-bottom: 1px solid var(--border); display: flex; gap: 20px; }
+        
+        .sub-nav { padding: 15px 40px; background: white; border-bottom: 1px solid var(--border); display: flex; gap: 20px; }
         .nav-link { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-light); transition: 0.3s; }
         .nav-link:hover { background: var(--light); }
         .nav-link.active { background: var(--primary); color: white; }
 
-        .view-section { display: none; padding: 30px 40px; max-width: 1800px; margin: 0 auto; }
+        .main-content { padding: 30px 40px; max-width: 1600px; margin: 0 auto; }
+        .view-section { display: none; grid-template-columns: 320px 1fr 320px; gap: 25px; }
         .view-section.active { display: grid; }
-        
-        #view-dashboard { grid-template-columns: 300px 1fr 350px; gap: 25px; }
-        #view-analytics { grid-template-columns: 1fr 1fr; gap: 25px; }
-        #view-logs { grid-template-columns: 1fr 1fr; gap: 25px; }
+        #view-analytics { grid-template-columns: 1fr 1fr; }
+        #view-logs { grid-template-columns: 1fr; }
 
-        .panel { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); height: fit-content; }
-        .panel-title { font-size: 1.3rem; font-weight: 700; color: var(--dark); margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border); }
-        
-        .status-item { padding: 18px; background: var(--light); border-radius: 12px; margin-bottom: 15px; border-left: 4px solid var(--primary); }
-        .status-label { font-size: 0.85rem; color: var(--text-light); margin-bottom: 5px; font-weight: 600; text-transform: uppercase; }
-        .status-value { font-size: 1.2rem; font-weight: 700; color: var(--dark); }
+        /* PANELS */
+        .panel { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); height: fit-content; }
+        .panel-title { font-size: 1.1rem; font-weight: 700; color: var(--dark); margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 
-        /* LIVE FEED */
-        .live-feed { background: #000; border-radius: 12px; height: 350px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 25px; position: relative; }
+        /* VIDEO FEED */
+        .live-feed { background: #000; border-radius: 12px; height: 350px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 20px; position: relative; border: 4px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         video { position: absolute; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
         canvas { position: absolute; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); z-index: 10; }
-        #camera-status { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; z-index: 20; }
+        
+        .voice-toggle {
+            position: absolute; top: 15px; right: 15px; z-index: 20;
+            background: white; color: var(--primary); border: none;
+            padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 0.85rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: 0.2s;
+        }
+        .voice-toggle.off { background: var(--text-light); color: white; text-decoration: line-through; }
 
-        .message-box { padding: 25px; border-radius: 12px; text-align: center; font-size: 1.8rem; font-weight: 700; margin-bottom: 25px; transition: all 0.3s; background: var(--light); }
-        .message-emergency { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; animation: blink 1s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .message-box { padding: 20px; border-radius: 12px; text-align: center; font-size: 1.5rem; font-weight: 700; background: var(--light); color: var(--primary); transition: 0.3s; }
+        .message-emergency { background: #fee2e2; color: #ef4444; animation: pulseRed 1s infinite; }
+        @keyframes pulseRed { 0% { transform: scale(1); } 50% { transform: scale(1.02); } }
 
-        .log-container { height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--light); }
-        .log-item { display: flex; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid #ddd; font-size: 0.9rem; }
-        .log-time { color: var(--text-light); font-size: 0.8rem; }
+        /* GESTURE LEGEND GRID */
+        .gesture-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-height: 400px; overflow-y: auto; }
+        .gesture-card { background: var(--light); padding: 10px; border-radius: 8px; text-align: center; border: 2px solid transparent; transition: 0.3s; }
+        .gesture-card.active { border-color: var(--primary); background: #e0e7ff; transform: scale(1.05); }
+        .gesture-icon { font-size: 1.5rem; display: block; margin-bottom: 5px; }
+        .gesture-name { font-size: 0.8rem; font-weight: 600; color: var(--text); }
 
-        /* INTAKE CARDS */
-        .intake-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .intake-card { padding: 20px; border-radius: 12px; text-align: center; color: white; position: relative; overflow: hidden; }
-        .intake-card h3 { font-size: 0.9rem; opacity: 0.9; margin-bottom: 10px; }
-        .intake-card .val { font-size: 2rem; font-weight: bold; }
-        .intake-card .unit { font-size: 0.8rem; opacity: 0.8; }
-        .card-water { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
-        .card-food { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-        .card-meds { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-        .last-taken { font-size: 0.7rem; opacity: 0.8; margin-top: 5px; }
+        /* BODY TWIN (LIGHT THEME) */
+        .body-container { height: 400px; display: flex; justify-content: center; align-items: center; background: var(--light); border-radius: 20px; position: relative; }
+        .body-outline { height: 320px; width: 130px; border: 3px solid #cbd5e1; border-radius: 40px; position: relative; background: white; }
+        .organ { position: absolute; background: #e2e8f0; border: 1px solid #cbd5e1; transition: 0.5s; }
+        .head { top: 10px; left: 35px; width: 60px; height: 60px; border-radius: 50%; }
+        .chest { top: 80px; left: 25px; width: 80px; height: 80px; border-radius: 20px; }
+        .stomach { top: 170px; left: 35px; width: 60px; height: 60px; border-radius: 15px; }
+        
+        .pain-active { background: #ef4444; border-color: #b91c1c; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
 
-        /* BODY TWIN */
-        .body-container { height: 350px; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%); border-radius: 20px; }
-        .body-outline { height: 280px; width: 110px; border: 3px solid rgba(99, 102, 241, 0.3); border-radius: 40px; position: relative; }
-        .organ { position: absolute; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); transition: 0.3s; }
-        .head { top: 10px; left: 30px; width: 50px; height: 50px; border-radius: 50%; }
-        .chest { top: 70px; left: 20px; width: 70px; height: 70px; border-radius: 20px; }
-        .stomach { top: 150px; left: 30px; width: 50px; height: 50px; border-radius: 15px; }
-        .pain-active { background: rgba(239, 68, 68, 0.5); box-shadow: 0 0 20px var(--danger); border-color: var(--danger); animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 0.6; } 100% { opacity: 1; } }
+        /* LOG TABLE */
+        .log-table { width: 100%; border-collapse: collapse; }
+        .log-table th { text-align: left; padding: 15px; color: var(--text-light); border-bottom: 2px solid var(--border); font-size: 0.9rem; }
+        .log-table td { padding: 15px; border-bottom: 1px solid var(--border); }
+        .badge { padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .bg-green { background: #dcfce7; color: #166534; }
+        .bg-red { background: #fee2e2; color: #991b1b; }
 
-        /* HISTORY TABLE */
-        .history-table { width: 100%; border-collapse: collapse; }
-        .history-table th { text-align: left; padding: 12px; background: var(--light); color: var(--text-light); font-size: 0.85rem; }
-        .history-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .info-box { background: var(--light); padding: 15px; border-radius: 8px; }
-        .info-label { font-size: 0.8rem; color: var(--text-light); }
-        .info-val { font-weight: 600; color: var(--dark); }
+        /* SOS OVERLAY */
+        #sos-alert { position: fixed; inset: 0; background: rgba(220, 38, 38, 0.9); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: white; }
+        .sos-active { display: flex !important; animation: shake 0.5s infinite; }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-        .emergency-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(239, 68, 68, 0.95); z-index: 9999; align-items: center; justify-content: center; }
-        .emergency-overlay.active { display: flex; }
-        .btn-dismiss { padding: 20px 40px; background: white; color: var(--danger); border: none; border-radius: 12px; font-size: 1.2rem; font-weight: 700; cursor: pointer; }
-
-        @media (max-width: 1200px) { #view-dashboard, #view-analytics, #view-logs, .auth-container { grid-template-columns: 1fr; } .auth-left { display: none; } }
+        @media (max-width: 1200px) { .view-section, .auth-container { grid-template-columns: 1fr !important; } .auth-left { display: none; } }
     </style>
 </head>
 <body>
@@ -118,16 +116,21 @@
     <div class="auth-container" id="authPage">
         <div class="auth-left">
             <h1>🎯 VisionCare</h1>
-            <p>Medical-Grade Assistive Intelligence</p>
+            <p style="opacity:0.9; margin-top:10px;">Medical-Grade AI Assistant</p>
+            <ul style="margin-top:20px; list-style:none;">
+                <li style="margin-bottom:10px;">✓ Gesture Recognition</li>
+                <li style="margin-bottom:10px;">✓ Voice Synthesis</li>
+                <li style="margin-bottom:10px;">✓ Patient Analytics</li>
+            </ul>
         </div>
         <div class="auth-right">
             <div class="auth-tabs">
-                <button class="auth-tab active" onclick="switchAuth('login')">Login</button>
+                <button class="auth-tab active">Login</button>
             </div>
-            <form class="auth-form active" id="loginForm" onsubmit="handleLogin(event)">
-                <div class="form-group"><label>Doctor/Nurse Email</label><input type="email" value="admin@hospital.com" readonly></div>
+            <form class="form-group" onsubmit="handleLogin(event)">
+                <div class="form-group"><label>Email Address</label><input type="email" value="doctor@visioncare.com" readonly></div>
                 <div class="form-group"><label>Password</label><input type="password" value="demo123" readonly></div>
-                <button type="submit" class="btn btn-primary">Secure Login</button>
+                <button type="submit" class="btn">Login to Dashboard</button>
             </form>
         </div>
     </div>
@@ -135,266 +138,308 @@
     <div class="dashboard" id="dashboardPage">
         <div class="navbar">
             <div class="navbar-brand">🎯 VisionCare Pro</div>
-            <div class="navbar-user"><span>Dr. Emily Chen</span><div class="user-avatar">EC</div><button class="btn-logout" onclick="location.reload()">Exit</button></div>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <span style="font-weight:600; color:var(--text)">Dr. Emily Chen</span>
+                <div class="user-avatar">EC</div>
+            </div>
         </div>
 
         <div class="sub-nav">
             <div class="nav-link active" onclick="switchView('dashboard', this)">📡 Live Monitor</div>
-            <div class="nav-link" onclick="switchView('analytics', this)">📈 Intake & Analytics</div>
-            <div class="nav-link" onclick="switchView('logs', this)">📋 Patient History</div>
+            <div class="nav-link" onclick="switchView('analytics', this)">📈 Body & Analytics</div>
+            <div class="nav-link" onclick="switchView('logs', this)">📋 Patient Logs</div>
         </div>
 
-        <div class="view-section active" id="view-dashboard">
-            <div class="panel">
-                <h2 class="panel-title">👤 Live Vitals</h2>
-                <div class="status-item"><div class="status-label">Heart Rate</div><div class="status-value" style="color:var(--danger)">74 BPM</div></div>
-                <div class="status-item"><div class="status-label">SpO2 Level</div><div class="status-value" style="color:var(--primary)">99%</div></div>
-                <div class="status-item"><div class="status-label">Last Intake</div><div class="status-value">Water (10m ago)</div></div>
-            </div>
-            <div class="panel">
-                <h2 class="panel-title">📹 AI Vision Feed</h2>
-                <div class="live-feed">
-                    <video id="input_video" playsinline autoplay muted></video>
-                    <canvas id="output_canvas"></canvas>
-                    <div id="camera-status">System Initializing...</div>
+        <div class="main-content">
+            
+            <div class="view-section active" id="view-dashboard">
+                <div class="panel">
+                    <div class="panel-title">Patient Vitals</div>
+                    <div class="status-item"><div class="status-label">Heart Rate</div><div class="status-value" style="color:var(--danger)">74 BPM</div></div>
+                    <div class="status-item"><div class="status-label">SpO2 Level</div><div class="status-value" style="color:var(--primary)">99%</div></div>
+                    <div class="status-item"><div class="status-label">Detected Gesture</div><div class="status-value" id="live-gesture">--</div></div>
                 </div>
-                <div class="message-box" id="messageBox">Scanning...</div>
-            </div>
-            <div class="panel">
-                <h2 class="panel-title">📊 Session Log</h2>
-                <div class="log-container" id="realTimeLog"></div>
-            </div>
-        </div>
 
-        <div class="view-section" id="view-analytics">
-            <div class="panel">
-                <h2 class="panel-title">🍽️ Daily Intake Tracker</h2>
-                <div class="intake-grid">
-                    <div class="intake-card card-water">
-                        <h3>Total Water</h3>
-                        <div><span class="val" id="val-water">0</span> <span class="unit">ml</span></div>
-                        <div class="last-taken">Target: 2500ml</div>
+                <div class="panel">
+                    <div class="panel-title">
+                        <span>AI Vision Feed</span>
+                        <span class="badge bg-green">● LIVE</span>
                     </div>
-                    <div class="intake-card card-food">
-                        <h3>Food Intake</h3>
-                        <div><span class="val" id="val-food">0</span> <span class="unit">meals</span></div>
-                        <div class="last-taken">Next: Dinner</div>
+                    <div class="live-feed">
+                        <button class="voice-toggle" id="voiceBtn" onclick="toggleVoice()"><i class="fas fa-volume-up"></i> Voice ON</button>
+                        <video id="input_video" playsinline autoplay muted></video>
+                        <canvas id="output_canvas"></canvas>
                     </div>
-                    <div class="intake-card card-meds">
-                        <h3>Supplements</h3>
-                        <div><span class="val" id="val-meds">0</span> <span class="unit">doses</span></div>
-                        <div class="last-taken">Adherence: 100%</div>
-                    </div>
+                    <div class="message-box" id="messageBox">Initializing AI...</div>
                 </div>
-                
-                <h2 class="panel-title" style="margin-top:30px;">🩻 Body Level Analysis</h2>
-                <div class="body-container">
-                    <div class="body-outline">
-                        <div id="organ-head" class="organ head"></div>
-                        <div id="organ-chest" class="organ chest"></div>
-                        <div id="organ-stomach" class="organ stomach"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="panel">
-                <h2 class="panel-title">📈 Trends</h2>
-                <canvas id="intakeChart"></canvas>
-                <div style="margin-top:30px">
-                    <h2 class="panel-title">Gesture Frequency</h2>
-                    <canvas id="gestureChart"></canvas>
-                </div>
-            </div>
-        </div>
 
-        <div class="view-section" id="view-logs">
-            <div class="panel">
-                <h2 class="panel-title">🏥 Patient Profile: Alex Smith</h2>
-                <div class="info-grid">
-                    <div class="info-box"><div class="info-label">Patient ID</div><div class="info-val">#PT-8922</div></div>
-                    <div class="info-box"><div class="info-label">Blood Type</div><div class="info-val">O+ (Positive)</div></div>
-                    <div class="info-box"><div class="info-label">Allergies</div><div class="info-val" style="color:var(--danger)">Penicillin, Latex</div></div>
-                    <div class="info-box"><div class="info-label">Diet</div><div class="info-val">Low Sodium, Diabetic</div></div>
+                <div class="panel">
+                    <div class="panel-title">Gesture Signs</div>
+                    <div class="gesture-grid" id="gesture-legend">
+                        </div>
                 </div>
-                
-                <h2 class="panel-title" style="margin-top:20px;">💊 Current Prescriptions</h2>
-                <table class="history-table">
-                    <thead><tr><th>Medication</th><th>Dosage</th><th>Frequency</th><th>Last Given</th></tr></thead>
-                    <tbody>
-                        <tr><td>Amoxicillin</td><td>500mg</td><td>Every 8h</td><td>08:00 AM</td></tr>
-                        <tr><td>Paracetamol</td><td>650mg</td><td>As needed</td><td>Yesterday</td></tr>
-                        <tr><td>Vitamin D3</td><td>1000IU</td><td>Daily</td><td>09:00 AM</td></tr>
-                    </tbody>
-                </table>
             </div>
 
-            <div class="panel">
-                <h2 class="panel-title">📋 Full Event History</h2>
-                <div style="height:400px; overflow-y:auto;">
-                    <table class="history-table">
-                        <thead><tr><th>Time</th><th>Category</th><th>Details</th><th>Status</th></tr></thead>
-                        <tbody id="full-log-body"></tbody>
+            <div class="view-section" id="view-analytics">
+                <div class="panel">
+                    <div class="panel-title">🩻 Body Level Analysis</div>
+                    <div style="display:flex; gap:30px;">
+                        <div class="body-container" style="flex:1">
+                            <div class="body-outline">
+                                <div id="organ-head" class="organ head"></div>
+                                <div id="organ-chest" class="organ chest"></div>
+                                <div id="organ-stomach" class="organ stomach"></div>
+                            </div>
+                        </div>
+                        <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+                            <div style="margin-bottom:15px;">
+                                <div class="status-label">Pain Location</div>
+                                <div class="status-value" id="pain-area">None</div>
+                            </div>
+                            <div style="margin-bottom:15px;">
+                                <div class="status-label">System Status</div>
+                                <div class="status-value" id="sys-status" style="color:var(--success)">Stable</div>
+                            </div>
+                            <div style="padding:15px; background:var(--light); border-radius:10px; font-size:0.9rem;">
+                                <strong>AI Insight:</strong> Patient is showing normal vital signs. No distress signals detected in the last hour.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">📈 Intake & Activity</div>
+                    <div style="height:250px;">
+                        <canvas id="intakeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="view-section" id="view-logs">
+                <div class="panel">
+                    <div class="panel-title">📋 Full Communication History</div>
+                    <table class="log-table">
+                        <thead><tr><th>Time</th><th>Gesture</th><th>Meaning</th><th>Status</th></tr></thead>
+                        <tbody id="log-body"></tbody>
                     </table>
                 </div>
             </div>
+
         </div>
     </div>
 
-    <div class="emergency-overlay" id="emergencyOverlay">
-        <div style="text-align:center; color:white;">
-            <h1 style="font-size:4rem; margin-bottom:20px;">🚨 SOS 🚨</h1>
-            <p style="font-size:1.5rem; margin-bottom:30px;">Patient Requesting Assistance</p>
-            <button class="btn-dismiss" onclick="dismissEmergency()">ACKNOWLEDGE</button>
-        </div>
+    <div id="sos-alert">
+        <h1 style="font-size:5rem; margin-bottom:20px;">🚨 HELP 🚨</h1>
+        <p style="font-size:2rem; margin-bottom:40px;">EMERGENCY SOS TRIGGERED</p>
+        <button onclick="dismissSOS()" style="padding:15px 40px; background:white; color:var(--danger); border:none; font-size:1.2rem; font-weight:bold; border-radius:8px; cursor:pointer;">ACKNOWLEDGE ALERT</button>
     </div>
 
-    <script>
-        // CONFIG
-        const videoElement = document.getElementById('input_video');
-        const canvasElement = document.getElementById('output_canvas');
-        const canvasCtx = canvasElement.getContext('2d');
-        const statusText = document.getElementById('camera-status');
-        const msgBox = document.getElementById('messageBox');
+<script>
+    // --- 1. SETUP ---
+    const videoElement = document.getElementById('input_video');
+    const canvasElement = document.getElementById('output_canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    const msgBox = document.getElementById('messageBox');
+    const liveGesture = document.getElementById('live-gesture');
+    const painArea = document.getElementById('pain-area');
+    const sysStatus = document.getElementById('sys-status');
+    const organHead = document.getElementById('organ-head');
+    const organChest = document.getElementById('organ-chest');
+    const organStomach = document.getElementById('organ-stomach');
+
+    let voiceMuted = false;
+    let lastSpoken = "";
+    let isSosActive = false;
+    let chartInstance;
+    let intake = { water: 0, food: 0, meds: 0 };
+
+    // --- 2. GESTURE MAP ---
+    const gestureMap = {
+        "0,0,0,0,0": { name: "Fist", msg: "Stop / Wait", icon: "✊" },
+        "1,1,1,1,1": { name: "Open Palm", msg: "Hello / Nurse", icon: "✋" },
+        "0,1,1,0,0": { name: "Victory", msg: "Water", icon: "✌️" },
+        "0,1,0,0,0": { name: "Point", msg: "Medicine", icon: "☝️" },
+        "1,0,0,0,0": { name: "Thumb Up", msg: "Yes / Good", icon: "👍" },
+        "0,1,1,1,1": { name: "Thumb Down", msg: "No / Bad", icon: "👎" },
+        "0,0,0,0,1": { name: "Pinky", msg: "Washroom", icon: "🤙" },
+        "1,0,0,0,1": { name: "Call", msg: "Phone Call", icon: "📱" },
+        "0,1,0,0,1": { name: "Rock", msg: "Turn on TV", icon: "📺" },
+        "0,1,1,1,0": { name: "Three", msg: "Food / Hungry", icon: "🥘" },
+        "1,1,0,0,0": { name: "L-Shape", msg: "Lights", icon: "💡" },
+        "1,1,1,0,0": { name: "Gun", msg: "Chest Pain", icon: "💔" },
+        "0,0,1,1,1": { name: "OK Sign", msg: "I am Okay", icon: "👌" },
+        "0,1,0,1,0": { name: "Split", msg: "Headache", icon: "🤕" }
+    };
+
+    // --- 3. LOGIC ---
+    function handleLogin(e) {
+        e.preventDefault();
+        document.getElementById('authPage').style.display = 'none';
+        document.getElementById('dashboardPage').classList.add('active');
+        speak("System Online.");
+        renderLegend();
+        initCharts();
+        startCamera();
+    }
+
+    function toggleVoice() {
+        voiceMuted = !voiceMuted;
+        const btn = document.getElementById('voiceBtn');
+        if(voiceMuted) {
+            btn.innerHTML = '<i class="fas fa-volume-mute"></i> Voice OFF';
+            btn.classList.add('off');
+        } else {
+            btn.innerHTML = '<i class="fas fa-volume-up"></i> Voice ON';
+            btn.classList.remove('off');
+        }
+    }
+
+    function speak(text) {
+        if(!voiceMuted && text !== lastSpoken && text !== "Scanning..." && !isSosActive) {
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+            lastSpoken = text;
+            processAction(text);
+        }
+    }
+
+    function processAction(text) {
+        // Highlight Legend
+        document.querySelectorAll('.gesture-card').forEach(c => c.classList.remove('active'));
+        for(let key in gestureMap) {
+            if(gestureMap[key].msg === text) document.getElementById(`card-${gestureMap[key].name}`)?.classList.add('active');
+        }
+
+        // Intake Stats
+        if(text.includes("Water")) intake.water++;
+        if(text.includes("Food")) intake.food++;
+        if(text.includes("Medicine")) intake.meds++;
+        updateCharts();
+
+        // Body Analysis
+        organHead.classList.remove('pain-active');
+        organChest.classList.remove('pain-active');
+        organStomach.classList.remove('pain-active');
+        painArea.innerText = "None";
+        sysStatus.innerText = "Stable"; sysStatus.style.color="var(--success)";
+
+        if(text.includes("Headache")) {
+            organHead.classList.add('pain-active');
+            painArea.innerText = "Head (Migraine)";
+            sysStatus.innerText = "Stress Detected"; sysStatus.style.color="var(--warning)";
+        } else if(text.includes("Chest")) {
+            organChest.classList.add('pain-active');
+            painArea.innerText = "Cardiac Region";
+            sysStatus.innerText = "CRITICAL ALERT"; sysStatus.style.color="var(--danger)";
+            triggerSOS();
+        } else if(text.includes("Hungry")) {
+            organStomach.classList.add('pain-active');
+            painArea.innerText = "Abdomen";
+        }
+
+        // Log
+        const row = document.createElement('tr');
+        let status = `<span class="badge bg-green">Logged</span>`;
+        if(text.includes("Pain") || text.includes("Emergency")) status = `<span class="badge bg-red">Alert</span>`;
+        row.innerHTML = `<td>${new Date().toLocaleTimeString()}</td><td>${liveGesture.innerText}</td><td>${text}</td><td>${status}</td>`;
+        document.getElementById('log-body').prepend(row);
+    }
+
+    function triggerSOS() {
+        if(isSosActive) return;
+        isSosActive = true;
+        document.getElementById('sos-alert').style.display = 'flex';
+        let loop = setInterval(() => {
+            if(!isSosActive) clearInterval(loop);
+            else if(!voiceMuted) window.speechSynthesis.speak(new SpeechSynthesisUtterance("Emergency Alert"));
+        }, 3000);
+    }
+
+    function dismissSOS() {
+        isSosActive = false;
+        document.getElementById('sos-alert').style.display = 'none';
+        window.speechSynthesis.cancel();
+    }
+
+    // --- 4. CAMERA & AI ---
+    async function startCamera() {
+        try {
+            const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+            hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5 });
+            hands.onResults(onResults);
+            
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            videoElement.srcObject = stream;
+            videoElement.onloadedmetadata = () => { videoElement.play(); processVideo(hands); };
+        } catch(e) { alert("Camera Error: " + e.message); }
+    }
+
+    async function processVideo(hands) {
+        if(videoElement.videoWidth) {
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            await hands.send({image: videoElement});
+        }
+        requestAnimationFrame(() => processVideo(hands));
+    }
+
+    function onResults(results) {
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
         
-        // Stats
-        let intake = { water: 0, food: 0, meds: 0 };
-        let lastSpoken = "";
-        let isSosActive = false;
-        let lastIntakeTime = 0; // Cooldown for intake tracking
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            const lm = results.multiHandLandmarks[0];
+            const handedness = results.multiHandedness[0].label;
+            drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: '#6366f1', lineWidth: 4});
+            drawLandmarks(canvasCtx, lm, {color: '#ef4444', lineWidth: 2});
 
-        // Gesture Map
-        const gestureMap = {
-            "0,0,0,0,0": { name: "Fist", msg: "Stop / Wait", type: "stop" },
-            "1,1,1,1,1": { name: "Open Palm", msg: "Hello", type: "normal" },
-            "0,1,0,0,0": { name: "Point", msg: "Medicine", type: "med" },
-            "0,1,1,0,0": { name: "Victory", msg: "Water", type: "water" },
-            "1,0,0,0,0": { name: "Thumb Up", msg: "Yes", type: "yes" },
-            "1,1,1,0,0": { name: "Gun", msg: "Chest Pain", type: "pain_chest" },
-            "0,1,1,1,1": { name: "Four", msg: "Headache", type: "pain_head" },
-            "0,0,1,1,1": { name: "OK Sign", msg: "I am Okay", type: "ok" }
-        };
+            let fingers = [];
+            if (handedness === 'Right') fingers.push(lm[4].x < lm[3].x ? 1 : 0);
+            else fingers.push(lm[4].x > lm[3].x ? 1 : 0);
+            [8, 12, 16, 20].forEach(t => fingers.push(lm[t].y < lm[t-2].y ? 1 : 0));
 
-        function handleLogin(e) {
-            e.preventDefault();
-            document.getElementById('authPage').style.display = 'none';
-            document.getElementById('dashboardPage').classList.add('active');
-            initCharts();
-            initAI();
-            speak("Welcome Doctor. System monitoring active.");
-        }
+            let result = { name: "--", msg: "Scanning...", type: "none" };
+            if(Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y) < 0.05) result = gestureMap["0,0,1,1,1"];
+            else if(fingers[0]===0 && fingers[1]===0 && fingers[2]===0 && lm[4].y > lm[3].y) result = gestureMap["0,1,1,1,1"];
+            else result = gestureMap[fingers.join(",")] || result;
 
-        async function initAI() {
-            try {
-                const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-                hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5 });
-                hands.onResults(onResults);
-                
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                videoElement.srcObject = stream;
-                videoElement.onloadedmetadata = () => { videoElement.play(); processVideo(hands); statusText.style.display='none'; };
-            } catch (e) { statusText.innerText = "Camera Error: " + e.message; }
-        }
-
-        async function processVideo(hands) {
-            if(videoElement.videoWidth) {
-                canvasElement.width = videoElement.videoWidth;
-                canvasElement.height = videoElement.videoHeight;
-                await hands.send({image: videoElement});
-            }
-            requestAnimationFrame(() => processVideo(hands));
-        }
-
-        function onResults(results) {
-            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-            
-            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                const lm = results.multiHandLandmarks[0];
-                const handedness = results.multiHandedness[0].label;
-                drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: '#6366f1', lineWidth: 4});
-                drawLandmarks(canvasCtx, lm, {color: '#ef4444', lineWidth: 2});
-
-                let fingers = [];
-                if (handedness === 'Right') fingers.push(lm[4].x < lm[3].x ? 1 : 0);
-                else fingers.push(lm[4].x > lm[3].x ? 1 : 0);
-                [8, 12, 16, 20].forEach(tip => fingers.push(lm[tip].y < lm[tip - 2].y ? 1 : 0));
-
-                let result = { name: "--", msg: "Scanning...", type: "none" };
-                if(Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y) < 0.05) result = gestureMap["0,0,1,1,1"];
-                else result = gestureMap[fingers.join(",")] || result;
-
-                updateUI(result);
-            }
-        }
-
-        function updateUI(result) {
+            liveGesture.innerText = result.name;
             msgBox.innerText = result.msg;
-            if(result.type.includes('pain')) {
-                if(!isSosActive) { isSosActive = true; document.getElementById('emergencyOverlay').classList.add('active'); speak("Emergency"); }
-            }
             
-            if(result.type !== "none" && result.msg !== lastSpoken) {
-                lastSpoken = result.msg;
-                speak(result.msg);
-                logEvent(result.msg, result.type);
-                trackIntake(result.type);
-            }
+            if(result.type && result.type.includes('pain')) msgBox.className = "message-box message-emergency";
+            else msgBox.className = "message-box";
+
+            if(result.type !== "none") speak(result.msg);
         }
+    }
 
-        function trackIntake(type) {
-            // Prevent spamming intake (wait 5 seconds between adds)
-            if(Date.now() - lastIntakeTime < 5000) return;
-            
-            let updated = false;
-            if(type === 'water') { intake.water += 250; updated = true; }
-            if(type === 'med') { intake.meds += 1; updated = true; }
-            if(type === 'food' || type === 'three') { intake.food += 1; updated = true; } // Assuming 'Three' gesture is for food sometimes
-
-            if(updated) {
-                lastIntakeTime = Date.now();
-                document.getElementById('val-water').innerText = intake.water;
-                document.getElementById('val-meds').innerText = intake.meds;
-                document.getElementById('val-food').innerText = intake.food;
-                updateCharts();
-            }
+    function renderLegend() {
+        const grid = document.getElementById('gesture-legend');
+        for(let key in gestureMap) {
+            const g = gestureMap[key];
+            grid.innerHTML += `<div class="gesture-card" id="card-${g.name}"><span class="gesture-icon">${g.icon}</span><div class="gesture-name">${g.name}</div><div style="font-size:0.7rem; color:var(--text-light)">${g.msg}</div></div>`;
         }
+    }
 
-        function speak(text) { window.speechSynthesis.speak(new SpeechSynthesisUtterance(text)); }
+    function initCharts() {
+        const ctx = document.getElementById('intakeChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: ['Water', 'Food', 'Meds'], datasets: [{ label: 'Units', data: [0,0,0], backgroundColor: ['#3b82f6', '#f59e0b', '#10b981'] }] },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+    }
+    function updateCharts() {
+        chartInstance.data.datasets[0].data = [intake.water, intake.food, intake.meds];
+        chartInstance.update();
+    }
 
-        function logEvent(msg, type) {
-            const time = new Date().toLocaleTimeString();
-            const div = document.createElement('div');
-            div.className = 'log-item';
-            div.innerHTML = `<span>${msg}</span><span>${time}</span>`;
-            document.getElementById('realTimeLog').prepend(div);
-
-            const row = document.createElement('tr');
-            row.innerHTML = `<td>${time}</td><td>${type.toUpperCase()}</td><td>${msg}</td><td>Logged</td>`;
-            document.getElementById('full-log-body').prepend(row);
-        }
-
-        function dismissEmergency() { isSosActive = false; document.getElementById('emergencyOverlay').classList.remove('active'); }
-
-        let intakeChart;
-        function initCharts() {
-            const ctx = document.getElementById('intakeChart').getContext('2d');
-            intakeChart = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: ['Water (ml)', 'Food (Meals)', 'Meds (Doses)'], datasets: [{ label: 'Today', data: [0,0,0], backgroundColor: ['#3b82f6', '#f59e0b', '#10b981'] }] },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
-            });
-        }
-        function updateCharts() {
-            intakeChart.data.datasets[0].data = [intake.water, intake.food, intake.meds];
-            intakeChart.update();
-        }
-
-        function switchAuth(t) { /* Same as before */ document.getElementById('authPage').classList.add('active'); } // Simplified for brevity
-        function switchView(viewId, btn) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            document.getElementById('view-' + viewId).classList.add('active');
-            btn.classList.add('active');
-        }
-    </script>
+    function switchView(viewId, btn) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+        document.getElementById('view-' + viewId).classList.add('active');
+        btn.classList.add('active');
+    }
+</script>
 </body>
 </html>
