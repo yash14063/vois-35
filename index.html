@@ -45,4 +45,341 @@
         .doc-layout { display: grid; grid-template-columns: 260px 1fr 320px; height: 100%; }
         
         .sidebar { background: white; border-right: 1px solid #e2e8f0; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .nav-btn { padding: 15px; border-radius: 12px; color: #64748b; font-weight: 600; display: flex; align-items: center; gap: 12
+        .nav-btn { padding: 15px; border-radius: 12px; color: #64748b; font-weight: 600; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .nav-btn.active { background: #eff6ff; color: var(--primary); }
+
+        .main-feed { padding: 30px; overflow-y: auto; background: #f1f5f9; }
+        .patient-card { background: white; border-radius: 16px; padding: 25px; margin-bottom: 20px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; transition: 0.3s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .patient-card.emergency { border: 2px solid var(--alert); background: #fef2f2; animation: flash 1.5s infinite; }
+        @keyframes flash { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+
+        .details-panel { background: white; border-left: 1px solid #e2e8f0; padding: 25px; display: flex; flex-direction: column; gap: 20px; }
+        
+        /* BODY TWIN */
+        .body-twin { height: 300px; background: #e0f2fe; border-radius: 16px; position: relative; margin-top: 10px; }
+        .organ { position: absolute; background: rgba(255,255,255,0.6); border: 2px solid #38bdf8; transition: 0.3s; }
+        .organ.pain { background: var(--alert); border-color: #991b1b; box-shadow: 0 0 20px var(--alert); }
+        .head { top: 20px; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; border-radius: 50%; }
+        .chest { top: 90px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; border-radius: 20px; }
+        .stomach { top: 180px; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; border-radius: 15px; }
+
+        .log-box { flex: 1; overflow-y: auto; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+        .log-item { padding: 12px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; color: #475569; display: flex; justify-content: space-between; }
+
+        /* NOTIFICATION */
+        .phone-alert { position: fixed; top: 20px; right: 20px; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); width: 320px; z-index: 9999; transform: translateX(150%); transition: 0.5s; display: flex; gap: 15px; align-items: center; border-left: 5px solid var(--alert); }
+        .phone-alert.show { transform: translateX(0); }
+        .phone-icon { width: 40px; height: 40px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--alert); font-size: 1.2rem; }
+
+        .big-btn { padding: 15px 40px; font-size: 1.2rem; background: var(--primary); color: white; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; position: absolute; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+
+    <div id="screen-landing">
+        <div class="role-card" onclick="openRoomMonitor()">
+            <div class="role-icon"><i class="fas fa-procedures"></i></div>
+            <h2>Patient Room</h2>
+            <p>Starts Camera (HD)</p>
+        </div>
+        <div class="role-card" onclick="openDoctorDash()">
+            <div class="role-icon"><i class="fas fa-user-md"></i></div>
+            <h2>Doctor Station</h2>
+            <p>Live Monitoring</p>
+        </div>
+    </div>
+
+    <div id="screen-room" class="app-screen">
+        <div class="cam-wrapper">
+            <button class="big-btn" id="start-cam-btn" onclick="initCamera()">TAP TO START CAMERA</button>
+            <video id="input_video" playsinline muted></video>
+            <canvas id="output_canvas"></canvas>
+            
+            <div class="split-line"></div>
+            <div class="bed-label bed-1">BED 1 (Alex)</div>
+            <div class="bed-label bed-2">BED 2 (Sarah)</div>
+            <div class="debug-box" id="debug-text">AI Status: Offline</div>
+        </div>
+    </div>
+
+    <div id="screen-doctor" class="app-screen">
+        <div class="doc-layout">
+            <div class="sidebar">
+                <h2 style="color:var(--primary); margin-bottom: 20px; padding-left:10px;">VisionCare</h2>
+                <div class="nav-btn active"><i class="fas fa-columns"></i> Ward Overview</div>
+                <div class="nav-btn"><i class="fas fa-user-injured"></i> Patients List</div>
+                <div class="nav-btn"><i class="fas fa-chart-line"></i> Analytics</div>
+                <button onclick="location.reload()" style="margin-top:auto; padding:12px; background:#fee2e2; color:var(--alert); border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Logout</button>
+            </div>
+
+            <div class="main-feed">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h2 style="margin:0;">Ward 104 Status</h2>
+                    <span style="background:#dcfce7; color:#166534; padding:5px 15px; border-radius:20px; font-size:0.85rem; font-weight:bold;">● System Online</span>
+                </div>
+                
+                <div id="card-bed1" class="patient-card">
+                    <div style="display:flex; gap:15px; align-items:center;">
+                        <div style="width:50px; height:50px; background:#e2e8f0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; color:#64748b;">AS</div>
+                        <div>
+                            <h3 style="margin:0;">Alex Smith (Bed 1)</h3>
+                            <small style="color:#64748b;">Post-Op Recovery</small>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-weight:bold; color:#10b981;" id="stat-text-1">Stable</div>
+                        <small id="status-bed1">No Requests</small>
+                    </div>
+                </div>
+
+                <div id="card-bed2" class="patient-card">
+                    <div style="display:flex; gap:15px; align-items:center;">
+                        <div style="width:50px; height:50px; background:#e2e8f0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; color:#64748b;">SJ</div>
+                        <div>
+                            <h3 style="margin:0;">Sarah Jones (Bed 2)</h3>
+                            <small style="color:#64748b;">Observation</small>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-weight:bold; color:#10b981;" id="stat-text-2">Stable</div>
+                        <small id="status-bed2">No Requests</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-panel">
+                <h3 style="margin:0;">Active Focus</h3>
+                <div class="body-twin">
+                    <div id="organ-head" class="organ head"></div>
+                    <div id="organ-chest" class="organ chest"></div>
+                    <div id="organ-stomach" class="organ stomach"></div>
+                    <div style="position:absolute; bottom:15px; width:100%; text-align:center; color:#64748b; font-weight:bold; font-size:0.9rem;" id="body-text">No Pain Detected</div>
+                </div>
+
+                <h3 style="margin:20px 0 10px 0;">Live Event Log</h3>
+                <div class="log-box" id="doc-logs"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="phone-notif" class="phone-alert">
+        <div class="phone-icon"><i class="fas fa-bell"></i></div>
+        <div>
+            <div style="font-weight:bold;">EMERGENCY ALERT</div>
+            <div id="notif-msg" style="color:#64748b; font-size:0.9rem;">Bed 1: Chest Pain</div>
+        </div>
+    </div>
+
+<script>
+    // --- REAL-TIME SYNC ---
+    const channel = new BroadcastChannel('hospital_sync');
+
+    // --- DOM ELEMENTS ---
+    const video = document.getElementById('input_video');
+    const canvas = document.getElementById('output_canvas');
+    const ctx = canvas.getContext('2d');
+    const debugText = document.getElementById('debug-text');
+    const startBtn = document.getElementById('start-cam-btn');
+
+    // Doctor UI
+    const card1 = document.getElementById('card-bed1');
+    const card2 = document.getElementById('card-bed2');
+    const status1 = document.getElementById('status-bed1');
+    const status2 = document.getElementById('status-bed2');
+    const bodyText = document.getElementById('body-text');
+    const docLogs = document.getElementById('doc-logs');
+    const notif = document.getElementById('phone-notif');
+    const notifMsg = document.getElementById('notif-msg');
+
+    // Body Organs
+    const organs = {
+        head: document.getElementById('organ-head'),
+        chest: document.getElementById('organ-chest'),
+        stomach: document.getElementById('organ-stomach')
+    };
+
+    let lastAction = "";
+
+    // --- 1. NAVIGATION ---
+    function openRoomMonitor() {
+        document.getElementById('screen-landing').style.display = 'none';
+        document.getElementById('screen-room').classList.add('active');
+    }
+
+    function openDoctorDash() {
+        document.getElementById('screen-landing').style.display = 'none';
+        document.getElementById('screen-doctor').classList.add('active');
+        
+        // LISTEN FOR ALERTS
+        channel.onmessage = (ev) => {
+            handleDoctorAlert(ev.data);
+        };
+    }
+
+    // --- 2. CAMERA & AI ---
+    async function initCamera() {
+        startBtn.innerText = "STARTING HD CAMERA...";
+        
+        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+        // LOWERED CONFIDENCE FOR BETTER DETECTION IN LOW LIGHT
+        hands.setOptions({
+            maxNumHands: 2, 
+            modelComplexity: 1, 
+            minDetectionConfidence: 0.5, // Lowered from 0.7
+            minTrackingConfidence: 0.5 
+        });
+        hands.onResults(onResults);
+
+        try {
+            // FORCE 720p RESOLUTION
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { width: { ideal: 1280 }, height: { ideal: 720 } } 
+            });
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+                video.play();
+                startBtn.style.display = 'none';
+                
+                // Adjust Canvas Size
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                const camera = new Camera(video, {
+                    onFrame: async () => { await hands.send({image: video}); },
+                    width: video.videoWidth, 
+                    height: video.videoHeight
+                });
+                camera.start();
+            };
+        } catch(e) {
+            alert("Camera Error: " + e.message);
+            startBtn.innerText = "RETRY";
+        }
+    }
+
+    // --- 3. GESTURE LOGIC (IMPROVED) ---
+    function onResults(results) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+        
+        // Draw Split Line
+        ctx.beginPath(); ctx.moveTo(canvas.width/2, 0); ctx.lineTo(canvas.width/2, canvas.height);
+        ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 4; ctx.setLineDash([15, 15]); ctx.stroke();
+
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            
+            for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+                const lm = results.multiHandLandmarks[i];
+                const handedness = results.multiHandedness[i].label; // Left/Right
+                
+                // DRAW GREEN SKELETON (High Visibility)
+                drawConnectors(ctx, lm, HAND_CONNECTIONS, {color: '#00ff00', lineWidth: 4});
+                drawLandmarks(ctx, lm, {color: '#ff0000', lineWidth: 2, radius: 4});
+                
+                // Identify Bed (X < 0.5 is Left)
+                // Since video is flipped horizontally in CSS, logic is inverted visually
+                const x = lm[0].x;
+                const bedId = x < 0.5 ? 1 : 2; 
+                
+                detectGesture(lm, bedId);
+            }
+        } else {
+            debugText.innerText = "Searching for Hands...";
+        }
+    }
+
+    function detectGesture(lm, bedId) {
+        let fingers = [];
+        
+        // --- 1. THUMB LOGIC (Geometric) ---
+        // Calculate if thumb tip is far from index base (open) or close (closed)
+        // distance(Tip 4, IndexBase 5)
+        const thumbDist = Math.hypot(lm[4].x - lm[5].x, lm[4].y - lm[5].y);
+        fingers.push(thumbDist > 0.05 ? 1 : 0); // 0.05 is a tuned threshold
+
+        // --- 2. FINGER LOGIC (Y-Axis check) ---
+        // Tip (8) above PIP Joint (6) -> Open
+        // Y decreases as you go UP on screen
+        [8, 12, 16, 20].forEach((tip, idx) => {
+            const pip = tip - 2;
+            fingers.push(lm[tip].y < lm[pip].y ? 1 : 0);
+        });
+        
+        const fStr = fingers.join("");
+        
+        // DEBUG: Show what the AI sees
+        debugText.innerText = `Bed ${bedId} | Fingers: ${fStr}`;
+
+        let msg = "";
+        let organ = "";
+
+        // ROBUST MAPPING
+        if (fStr === "00000" || fStr === "10000") { msg = "STOP"; } // Fist
+        else if (fStr === "11111" || fStr === "01111") { msg = "HELP"; } // Open Palm
+        else if (fStr === "01100" || fStr === "11100") { msg = "WATER"; } // Victory (2 or 3 fingers)
+        else if (fStr === "01000" || fStr === "11000") { msg = "MEDS"; }  // Pointing
+        else if (fStr === "01110") { msg = "CHEST PAIN"; organ = "chest"; } // 3 fingers middle
+        else if (fStr === "00111" || fStr === "10111") { msg = "HEADACHE"; organ = "head"; } // OK Sign shape
+
+        if (msg && msg !== lastAction) {
+            lastAction = msg;
+            
+            // SEND TO DOCTOR
+            channel.postMessage({
+                bed: bedId,
+                msg: msg,
+                organ: organ,
+                time: new Date().toLocaleTimeString()
+            });
+
+            // Debounce
+            setTimeout(() => { lastAction = ""; }, 2500);
+        }
+    }
+
+    // --- 4. DOCTOR LOGIC (RECEIVER) ---
+    function handleDoctorAlert(data) {
+        const card = data.bed === 1 ? card1 : card2;
+        const status = data.bed === 1 ? status1 : status2;
+        const statText = data.bed === 1 ? document.getElementById('stat-text-1') : document.getElementById('stat-text-2');
+
+        // 1. Update List Card
+        status.innerText = "Request: " + data.msg;
+        
+        if(data.organ || data.msg === "HELP") {
+            statText.innerText = "CRITICAL";
+            statText.style.color = "red";
+            card.classList.add('emergency');
+            setTimeout(() => card.classList.remove('emergency'), 4000);
+            
+            // Phone Notification
+            notifMsg.innerText = `Bed ${data.bed}: ${data.msg}`;
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), 5000);
+            
+            // Audio
+            const speech = new SpeechSynthesisUtterance(`Emergency. Bed ${data.bed} reports ${data.msg}`);
+            window.speechSynthesis.speak(speech);
+        } else {
+            statText.innerText = "Active";
+            statText.style.color = "#3b82f6";
+        }
+
+        // 2. Body Twin
+        Object.values(organs).forEach(o => o.className = "organ"); // Reset
+        if(data.organ) {
+            organs[data.organ].classList.add('pain');
+            bodyText.innerText = `Bed ${data.bed}: ${data.msg}`;
+            bodyText.style.color = "red";
+        }
+
+        // 3. Log
+        const div = document.createElement('div');
+        div.className = "log-item";
+        div.innerHTML = `<span><b>Bed ${data.bed}:</b> ${data.msg}</span> <span style="font-size:0.8rem; color:#94a3b8">${data.time}</span>`;
+        docLogs.prepend(div);
+    }
+
+</script>
+</body>
+</html>
