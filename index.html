@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>VisionCare – Patient Monitoring</title>
+<title>VisionCare – Patient Gesture Monitoring</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Icons -->
+<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
 <!-- MediaPipe -->
@@ -15,13 +15,13 @@
 <style>
 body{
     margin:0;
-    font-family: "Segoe UI", sans-serif;
+    font-family:Segoe UI, sans-serif;
     background:#f1f5f9;
 }
 header{
     background:#1e293b;
     color:white;
-    padding:15px 30px;
+    padding:16px 30px;
     display:flex;
     justify-content:space-between;
     align-items:center;
@@ -30,13 +30,13 @@ main{
     padding:20px;
 }
 .video-box{
-    position:relative;
     max-width:900px;
     margin:auto;
+    position:relative;
 }
 video, canvas{
     width:100%;
-    border-radius:14px;
+    border-radius:16px;
 }
 canvas{
     position:absolute;
@@ -50,45 +50,42 @@ canvas{
 }
 .card{
     background:white;
-    padding:15px;
-    border-radius:14px;
-    box-shadow:0 8px 25px rgba(0,0,0,0.1);
-}
-.card h3{
-    margin-top:0;
+    padding:16px;
+    border-radius:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.12);
 }
 .status{
-    font-weight:600;
+    font-size:1.1rem;
+    font-weight:700;
     color:#2563eb;
 }
 
-/* TOAST */
+/* Toast */
 #doctor-toast{
     position:fixed;
     top:20px;
     right:20px;
     background:white;
     padding:15px 20px;
-    border-radius:12px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+    border-radius:14px;
+    box-shadow:0 12px 35px rgba(0,0,0,0.35);
     display:flex;
     align-items:center;
     gap:12px;
     transform:translateX(150%);
     transition:0.4s ease;
     z-index:9999;
-    min-width:260px;
 }
 #toast-icon{
-    width:40px;
-    height:40px;
+    width:42px;
+    height:42px;
     border-radius:10px;
     background:#6366f1;
     color:white;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:1.2rem;
+    font-size:1.3rem;
 }
 </style>
 </head>
@@ -96,7 +93,7 @@ canvas{
 <body>
 
 <header>
-    <h2>🏥 VisionCare – Patient Monitoring</h2>
+    <h2>🏥 VisionCare – Gesture Monitoring</h2>
     <div>Doctor Dashboard</div>
 </header>
 
@@ -110,87 +107,87 @@ canvas{
 <div class="grid">
     <div class="card">
         <h3>🛏 Bed 1</h3>
-        <p class="status" id="status1">Waiting...</p>
+        <div class="status" id="status1">Waiting...</div>
     </div>
     <div class="card">
         <h3>🛏 Bed 2</h3>
-        <p class="status" id="status2">Waiting...</p>
+        <div class="status" id="status2">Waiting...</div>
     </div>
 </div>
 
 </main>
 
-<!-- DOCTOR TOAST -->
+<!-- Doctor Toast -->
 <div id="doctor-toast">
     <div id="toast-icon">🔔</div>
     <div>
-        <div style="font-weight:700;">Patient Alert</div>
+        <div style="font-weight:700">Patient Alert</div>
         <div id="toast-text">Gesture detected</div>
     </div>
 </div>
 
 <script>
-/* ---------------- CORE VARIABLES ---------------- */
+/* ---------- VARIABLES ---------- */
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-let lastSpoken = {1:"",2:""};
+let lastGesture = {1:"", 2:""};
 
-/* ---------------- VOICE ---------------- */
+/* ---------- VOICE ---------- */
 function speak(text){
     const msg = new SpeechSynthesisUtterance(text);
+    speechSynthesis.cancel();
     speechSynthesis.speak(msg);
 }
 
-/* ---------------- NOTIFICATIONS ---------------- */
-function requestDoctorNotificationPermission(){
+/* ---------- NOTIFICATIONS ---------- */
+function requestPermission(){
     if("Notification" in window){
         Notification.requestPermission();
     }
 }
 
-function showDoctorNotification(message, critical=false){
+function showNotification(msg, critical=false){
     const toast = document.getElementById("doctor-toast");
     const text = document.getElementById("toast-text");
     const icon = document.getElementById("toast-icon");
 
-    text.innerText = message;
+    text.innerText = msg;
     icon.style.background = critical ? "#ef4444" : "#6366f1";
     icon.innerText = critical ? "🚨" : "🔔";
 
-    toast.style.transform="translateX(0)";
+    toast.style.transform = "translateX(0)";
     setTimeout(()=>toast.style.transform="translateX(150%)",4000);
 
     if(Notification.permission==="granted"){
-        new Notification("VisionCare Alert",{body:message});
+        new Notification("VisionCare Alert",{body:msg});
     }
 }
 
-/* ---------------- GESTURE LOGIC ---------------- */
-function detectGesture(landmarks){
-    const y = landmarks.map(l=>l.y);
-    if(y[8] < y[6]) return "Need Water";
-    if(y[12] < y[10]) return "Need Medicine";
-    if(y[4] < y[3]) return "Headache";
-    if(y[16] < y[14]) return "Chest Pain";
+/* ---------- GESTURE DETECTION ---------- */
+function detectGesture(lm){
+    if(lm[8].y < lm[6].y) return "Need Water";
+    if(lm[12].y < lm[10].y) return "Need Medicine";
+    if(lm[4].y < lm[3].y) return "Headache";
+    if(lm[16].y < lm[14].y) return "Chest Pain";
     return null;
 }
 
-/* ---------------- PROCESS ---------------- */
-function processGesture(bedId, gesture){
-    if(!gesture || gesture===lastSpoken[bedId]) return;
+/* ---------- PROCESS ---------- */
+function handleGesture(bed, gesture){
+    if(!gesture || gesture===lastGesture[bed]) return;
 
-    lastSpoken[bedId] = gesture;
-    document.getElementById(`status${bedId}`).innerText = gesture;
+    lastGesture[bed] = gesture;
+    document.getElementById(`status${bed}`).innerText = gesture;
 
-    speak(`Patient at bed ${bedId} needs help`);
+    speak(`Patient at bed ${bed} needs assistance`);
 
     const critical = gesture.includes("Chest");
-    showDoctorNotification(`Bed ${bedId}: ${gesture}`, critical);
+    showNotification(`Bed ${bed}: ${gesture}`, critical);
 }
 
-/* ---------------- HANDS ---------------- */
+/* ---------- MEDIAPIPE HANDS ---------- */
 const hands = new Hands({
     locateFile:(file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
 });
@@ -207,16 +204,16 @@ hands.onResults(results=>{
 
     if(results.multiHandLandmarks){
         results.multiHandLandmarks.forEach(lm=>{
-            const bedId = lm[0].x < 0.5 ? 1 : 2;
+            const bed = lm[0].x < 0.5 ? 1 : 2;
             const gesture = detectGesture(lm);
-            processGesture(bedId, gesture);
+            handleGesture(bed, gesture);
         });
     }
 });
 
-/* ---------------- CAMERA ---------------- */
+/* ---------- CAMERA ---------- */
 const camera = new Camera(video,{
-    onFrame: async()=>{
+    onFrame: async ()=>{
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         await hands.send({image:video});
@@ -226,7 +223,7 @@ const camera = new Camera(video,{
 });
 
 camera.start();
-requestDoctorNotificationPermission();
+requestPermission();
 </script>
 
 </body>
