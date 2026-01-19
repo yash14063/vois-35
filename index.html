@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VisionCare - Live Face Capture</title>
+    <title>VisionCare - Integrated Command</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,78 +19,76 @@
         body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
         /* --- AUTH SCREEN --- */
-        #authScreen { position: fixed; inset: 0; background: #020617; z-index: 5000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        .auth-box { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(10px); padding: 40px; border-radius: 24px; text-align: center; border: 1px solid #334155; width: 350px; box-shadow: 0 0 50px rgba(79, 70, 229, 0.3); }
-        .auth-input { width: 100%; padding: 12px; margin: 10px 0; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; outline: none; text-align: center; }
+        .auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .auth-box { background: var(--panel); padding: 40px; border-radius: 20px; text-align: center; border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .auth-input { width: 100%; padding: 12px; margin: 10px 0; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; }
 
         /* --- LAYOUT --- */
         .top-section { height: 50%; padding: 15px; display: flex; gap: 15px; background: #000; border-bottom: 2px solid var(--primary); }
         .bottom-section { height: 50%; padding: 20px; background: var(--bg); overflow-y: auto; display: flex; gap: 20px; }
 
-        /* --- CAMERA FEED --- */
+        /* --- CAMERA FEED (TOP) --- */
         .cam-container { flex: 3; position: relative; border-radius: 15px; overflow: hidden; border: 2px solid #334155; display: flex; align-items: center; justify-content: center; background: #000; }
         video { position: absolute; width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); }
         canvas { position: absolute; width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); z-index: 10; }
         
+        /* OVERLAYS */
         .divider { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.3); border-left: 2px dashed rgba(255,255,255,0.5); z-index: 15; }
-        
-        /* REGISTRATION BUTTONS */
         .reg-controls { position: absolute; bottom: 20px; z-index: 30; display: flex; gap: 20px; }
-        .btn-cam { padding: 10px 20px; background: rgba(0,0,0,0.6); color: white; border: 1px solid white; border-radius: 30px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 0.9rem; }
-        .btn-cam:hover { background: var(--primary); border-color: var(--primary); transform: scale(1.05); }
-        .btn-start { background: var(--primary); border: none; box-shadow: 0 0 20px rgba(79, 70, 229, 0.6); }
+        .btn-cam { padding: 10px 20px; background: rgba(0,0,0,0.6); color: white; border: 1px solid white; border-radius: 30px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-cam:hover { background: var(--primary); border-color: var(--primary); }
+        .btn-start { background: var(--primary); border: none; box-shadow: 0 0 15px var(--primary); }
 
         /* GESTURE LEGEND */
-        .gesture-legend { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; overflow-y: auto; background: var(--panel); padding: 10px; border-radius: 15px; border: 1px solid #334155; }
+        .gesture-legend { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; overflow-y: auto; background: var(--panel); padding: 10px; border-radius: 15px; }
         .g-card { background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; text-align: center; border: 1px solid transparent; font-size: 0.8rem; }
-        .g-card.active { background: var(--primary); border-color: white; transform: scale(1.05); box-shadow: 0 0 20px var(--primary); font-weight: bold; }
-        .g-icon { font-size: 1.5rem; display: block; margin-bottom: 2px; }
+        .g-card.active { background: var(--primary); border-color: white; transform: scale(1.05); box-shadow: 0 0 20px var(--primary); }
+        .g-icon { font-size: 1.2rem; display: block; margin-bottom: 2px; }
 
-        /* --- DASHBOARD CARDS --- */
-        .patient-card { flex: 1; background: var(--panel); border-radius: 20px; padding: 20px; border: 1px solid #334155; display: flex; flex-direction: column; position: relative; transition: 0.3s; }
+        /* --- DOCTOR DASHBOARD (BOTTOM) --- */
+        .patient-card { flex: 1; background: var(--panel); border-radius: 20px; padding: 20px; border: 1px solid #334155; display: flex; flex-direction: column; position: relative; }
         .card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; }
         
-        /* PATIENT PHOTO */
-        .p-photo { width: 80px; height: 80px; border-radius: 50%; background: #334155; object-fit: cover; border: 3px solid var(--accent); transition: 0.3s; }
-        .p-photo.updated { border-color: #22c55e; box-shadow: 0 0 15px #22c55e; }
-
-        .p-info h3 { margin: 0; font-size: 1.3rem; }
+        .p-photo { width: 70px; height: 70px; border-radius: 15px; background: #334155; object-fit: cover; border: 2px solid var(--accent); }
+        .p-info h3 { margin: 0; font-size: 1.2rem; }
         .p-info p { margin: 0; color: #94a3b8; font-size: 0.9rem; }
         
         .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; background: rgba(16, 185, 129, 0.2); color: #34d399; }
         .status-badge.alert { background: rgba(239, 68, 68, 0.2); color: var(--alert); animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        .request-box { text-align:center; padding:15px; background:rgba(255,255,255,0.05); border-radius:12px; margin-bottom:10px; border: 1px solid transparent; transition: 0.3s; }
-        .request-box.active { border-color: var(--accent); background: rgba(6, 182, 212, 0.1); }
-
-        .btn-action { flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border: none; color: white; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-top: 5px; transition: 0.2s; }
+        .btn-action { flex: 1; padding: 10px; background: rgba(255,255,255,0.05); border: none; color: white; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-top: 5px;}
         .btn-action:hover { background: rgba(255,255,255,0.1); }
 
-        /* --- PHONE NOTIFICATION --- */
+        /* --- MODALS (ANALYTICS) --- */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--panel); padding: 30px; border-radius: 24px; width: 80%; max-width: 900px; max-height: 90vh; overflow-y: auto; border: 1px solid #334155; }
+        .close-btn { float: right; cursor: pointer; font-size: 1.5rem; color: #94a3b8; }
+
+        /* PHONE NOTIFICATION SIMULATION */
         .phone-notif { 
-            position: fixed; top: 20px; right: 20px; background: #fff; color: #000; 
-            padding: 15px 25px; border-radius: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+            position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,0.95); color: black; 
+            padding: 15px 25px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
             z-index: 9999; transform: translateX(200%); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; align-items: center; gap: 15px; width: 320px; border-left: 5px solid var(--alert);
+            display: flex; align-items: center; gap: 15px; width: 320px;
         }
         .phone-notif.show { transform: translateX(0); }
-        .notif-icon { background: #fee2e2; color: var(--alert); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .notif-icon { background: var(--alert); color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
 
-        /* --- MODALS --- */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--panel); padding: 30px; border-radius: 24px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; border: 1px solid #334155; }
-        .close-btn { float: right; cursor: pointer; font-size: 1.5rem; color: #94a3b8; }
+        /* LOGS */
+        .log-container { height: 120px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; margin-top: 10px;}
+        .log-item { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
 
-    <div id="authScreen">
+    <div id="authScreen" class="auth-screen">
         <div class="auth-box">
-            <h1 style="color:var(--primary); margin-bottom:10px;"><i class="fas fa-eye"></i> VisionCare</h1>
-            <p style="color:#94a3b8; margin-bottom:20px;">Doctor's Command Center</p>
-            <input type="text" class="auth-input" value="Dr. Emily Chen" readonly>
-            <button class="btn-cam btn-start" style="width:100%; margin-top:10px; font-size:1.1rem;" onclick="login()">Enter Dashboard</button>
+            <h1 style="color:var(--primary); margin-bottom:10px;"><i class="fas fa-heartbeat"></i> VisionCare</h1>
+            <p style="color:#94a3b8;">Doctor's Command Center</p>
+            <input type="text" class="auth-input" value="Dr. Chen" readonly>
+            <input type="password" class="auth-input" value="******" readonly>
+            <button class="btn-cam btn-start" style="width:100%; margin-top:10px;" onclick="login()">Secure Login</button>
         </div>
     </div>
 
@@ -104,9 +102,9 @@
                 <div class="divider"></div>
                 
                 <div class="reg-controls">
-                    <button class="btn-cam" onclick="captureFace(1)">📸 Capture Bed 1</button>
+                    <button class="btn-cam" onclick="registerFace(1)">📸 Register Bed 1</button>
                     <button class="btn-cam btn-start" onclick="startCamera()">▶ START MONITORING</button>
-                    <button class="btn-cam" onclick="captureFace(2)">📸 Capture Bed 2</button>
+                    <button class="btn-cam" onclick="registerFace(2)">📸 Register Bed 2</button>
                 </div>
             </div>
 
@@ -118,7 +116,7 @@
                 <div class="g-card" id="g-fist"><div class="g-icon">✊</div><div>STOP</div></div>
                 <div class="g-card" id="g-three"><div class="g-icon">🥘</div><div>FOOD</div></div>
                 <div class="g-card" id="g-four"><div class="g-icon">🤕</div><div>PAIN</div></div>
-                <div class="g-card" id="g-ok"><div class="g-icon">👌</div><div>OKAY</div></div>
+                <div class="g-card" id="g-ok"><div class="g-icon">👌</div><div>OK</div></div>
             </div>
         </div>
 
@@ -127,57 +125,53 @@
             <div class="patient-card" id="card-p1">
                 <div class="card-header">
                     <div style="display:flex; gap:15px; align-items:center;">
-                        <img id="img-p1" src="https://via.placeholder.com/80/334155/FFFFFF?text=No+Img" class="p-photo">
+                        <img id="img-p1" src="https://via.placeholder.com/70/334155/FFFFFF?text=Photo" class="p-photo">
                         <div class="p-info">
                             <h3>Alex Smith</h3>
                             <p>Bed 1 • Post-Op</p>
                         </div>
                     </div>
-                    <div class="status-badge" id="status-p1">Monitoring</div>
+                    <div class="status-badge" id="status-p1">Stable</div>
                 </div>
                 
-                <div class="request-box" id="box-p1">
-                    <small style="color:#94a3b8; letter-spacing:1px;">LATEST REQUEST</small>
-                    <div style="font-size:1.8rem; font-weight:bold; color:var(--accent); margin-top:5px;" id="req-p1">--</div>
+                <div style="text-align:center; padding:10px; background:rgba(255,255,255,0.05); border-radius:12px;">
+                    <small style="color:#94a3b8;">LAST REQUEST</small>
+                    <div style="font-size:1.5rem; font-weight:bold; color:var(--accent);" id="req-p1">--</div>
                 </div>
 
-                <div style="display:flex; gap:10px; margin-top:auto;">
-                    <button class="btn-action" onclick="openAnalytics(1)"><i class="fas fa-chart-bar"></i> Analytics</button>
-                    <button class="btn-action" onclick="openHistory(1)"><i class="fas fa-history"></i> Logs</button>
+                <div class="log-container" id="log-p1"></div>
+
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="btn-action" onclick="openAnalytics(1)"><i class="fas fa-chart-line"></i> Analytics</button>
+                    <button class="btn-action" onclick="openBodyTwin(1)"><i class="fas fa-user-md"></i> Body Twin</button>
                 </div>
             </div>
 
             <div class="patient-card" id="card-p2">
                 <div class="card-header">
                     <div style="display:flex; gap:15px; align-items:center;">
-                        <img id="img-p2" src="https://via.placeholder.com/80/334155/FFFFFF?text=No+Img" class="p-photo">
+                        <img id="img-p2" src="https://via.placeholder.com/70/334155/FFFFFF?text=Photo" class="p-photo">
                         <div class="p-info">
                             <h3>Sarah Jones</h3>
                             <p>Bed 2 • Observation</p>
                         </div>
                     </div>
-                    <div class="status-badge" id="status-p2">Monitoring</div>
+                    <div class="status-badge" id="status-p2">Stable</div>
                 </div>
                 
-                <div class="request-box" id="box-p2">
-                    <small style="color:#94a3b8; letter-spacing:1px;">LATEST REQUEST</small>
-                    <div style="font-size:1.8rem; font-weight:bold; color:var(--accent); margin-top:5px;" id="req-p2">--</div>
+                <div style="text-align:center; padding:10px; background:rgba(255,255,255,0.05); border-radius:12px;">
+                    <small style="color:#94a3b8;">LAST REQUEST</small>
+                    <div style="font-size:1.5rem; font-weight:bold; color:var(--accent);" id="req-p2">--</div>
                 </div>
 
-                <div style="display:flex; gap:10px; margin-top:auto;">
-                    <button class="btn-action" onclick="openAnalytics(2)"><i class="fas fa-chart-bar"></i> Analytics</button>
-                    <button class="btn-action" onclick="openHistory(2)"><i class="fas fa-history"></i> Logs</button>
+                <div class="log-container" id="log-p2"></div>
+
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="btn-action" onclick="openAnalytics(2)"><i class="fas fa-chart-line"></i> Analytics</button>
+                    <button class="btn-action" onclick="openBodyTwin(2)"><i class="fas fa-user-md"></i> Body Twin</button>
                 </div>
             </div>
 
-        </div>
-    </div>
-
-    <div id="phone-notif" class="phone-notif">
-        <div class="notif-icon"><i class="fas fa-bell"></i></div>
-        <div>
-            <div style="font-weight:bold; font-size:1.1rem;">Emergency Alert</div>
-            <div style="font-size:0.9rem; color:#666;" id="notif-text">Bed 1 requesting Help</div>
         </div>
     </div>
 
@@ -191,21 +185,34 @@
         </div>
     </div>
 
-    <div id="modal-history" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('modal-history')">&times;</span>
-            <h2>Event History</h2>
-            <div id="history-list" style="margin-top:20px; color:#ccc;"></div>
+    <div id="modal-body" class="modal">
+        <div class="modal-content" style="text-align:center;">
+            <span class="close-btn" onclick="closeModal('modal-body')">&times;</span>
+            <h2>Real-Time Body Twin</h2>
+            <div style="position:relative; width:150px; height:350px; margin:20px auto; background:#cbd5e1; border-radius:40px;">
+                <div id="twin-head" style="position:absolute; top:10px; left:35px; width:80px; height:80px; background:#94a3b8; border-radius:50%; transition:0.3s;"></div>
+                <div id="twin-chest" style="position:absolute; top:100px; left:25px; width:100px; height:100px; background:#94a3b8; border-radius:20px; transition:0.3s;"></div>
+                <div id="twin-stomach" style="position:absolute; top:210px; left:35px; width:80px; height:80px; background:#94a3b8; border-radius:20px; transition:0.3s;"></div>
+            </div>
+            <div id="twin-status" style="font-weight:bold; color:var(--primary);">System Normal</div>
+        </div>
+    </div>
+
+    <div id="phone-notif" class="phone-notif">
+        <div class="notif-icon"><i class="fas fa-bell"></i></div>
+        <div>
+            <div style="font-weight:bold;">New Alert</div>
+            <div style="font-size:0.9rem;" id="notif-text">Bed 1 requesting Water</div>
         </div>
     </div>
 
 <script>
-    // --- VARIABLES ---
+    // --- SETUP ---
     const video = document.getElementById('input_video');
     const canvas = document.getElementById('output_canvas');
     const ctx = canvas.getContext('2d');
     
-    // Data Storage
+    // Data
     let logs = { 1: [], 2: [] };
     let stats = { 1: {water:0, meds:0, pain:0}, 2: {water:0, meds:0, pain:0} };
     let lastAction = "";
@@ -213,74 +220,60 @@
     function login() {
         document.getElementById('authScreen').style.display = 'none';
         document.getElementById('mainUI').style.display = 'flex';
-        // Request browser notifications
-        if ("Notification" in window) Notification.requestPermission();
+        requestNotificationPermission();
     }
 
-    // --- 1. CAMERA LOGIC ---
+    function requestNotificationPermission() {
+        if ("Notification" in window) {
+            Notification.requestPermission();
+        }
+    }
+
+    // --- 1. CAMERA & REGISTRATION ---
     async function startCamera() {
         const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
         hands.setOptions({maxNumHands: 2, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
         hands.onResults(onResults);
 
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
-            video.srcObject = stream;
-            video.onloadedmetadata = () => {
-                video.play();
-                const camera = new Camera(video, {
-                    onFrame: async () => { await hands.send({image: video}); },
-                    width: 1280, height: 720
-                });
-                camera.start();
-            };
-        } catch(e) { alert("Camera Error: Check Permissions"); }
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+            video.play();
+            const camera = new Camera(video, {
+                onFrame: async () => { await hands.send({image: video}); },
+                width: 1280, height: 720
+            });
+            camera.start();
+        };
     }
 
-    // --- 2. CAPTURE FACE (FEATURE) ---
-    function captureFace(bedId) {
-        if (video.readyState !== 4) return alert("Start Camera First!");
-        
-        // Draw current video frame to a temporary canvas
+    function registerFace(bedId) {
+        // Snapshot video
         const snapCanvas = document.createElement('canvas');
         snapCanvas.width = video.videoWidth;
         snapCanvas.height = video.videoHeight;
-        const snapCtx = snapCanvas.getContext('2d');
+        snapCanvas.getContext('2d').drawImage(video, 0, 0);
         
-        // Flip horizontally to match mirror view
-        snapCtx.translate(snapCanvas.width, 0);
-        snapCtx.scale(-1, 1);
-        snapCtx.drawImage(video, 0, 0);
-
-        // Update Image Source
-        const dataURL = snapCanvas.toDataURL('image/png');
-        const img = document.getElementById(`img-p${bedId}`);
-        img.src = dataURL;
-        img.classList.add('updated');
-        
-        // Audio confirmation
-        const audio = new SpeechSynthesisUtterance(`Bed ${bedId} Registered`);
-        window.speechSynthesis.speak(audio);
-        
-        setTimeout(() => img.classList.remove('updated'), 2000);
+        // Update Icon
+        document.getElementById(`img-p${bedId}`).src = snapCanvas.toDataURL('image/png');
+        alert(`Bed ${bedId} Patient Registered!`);
     }
 
-    // --- 3. GESTURE RECOGNITION ---
+    // --- 2. GESTURE LOGIC ---
     function onResults(results) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
         
         // Split Line
         ctx.beginPath(); ctx.moveTo(canvas.width/2, 0); ctx.lineTo(canvas.width/2, canvas.height);
-        ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 2; ctx.setLineDash([10, 10]); ctx.stroke();
+        ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 2; ctx.stroke();
 
         if (results.multiHandLandmarks) {
             for (const landmarks of results.multiHandLandmarks) {
-                // Draw Skeleton
                 drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {color: '#4f46e5', lineWidth: 3});
                 drawLandmarks(ctx, landmarks, {color: '#ef4444', lineWidth: 1});
                 
-                // Identify Bed (Left < 0.5 < Right)
+                // Identify Bed (Left/Right)
                 const bedId = landmarks[0].x < 0.5 ? 1 : 2;
                 detectGesture(landmarks, bedId);
             }
@@ -309,64 +302,64 @@
         if(msg && msg !== lastAction) {
             lastAction = msg;
             handleAlert(bedId, msg, organ);
-            setTimeout(() => lastAction = "", 1500); // 1.5s Debounce
+            setTimeout(() => lastAction = "", 1500); // 1.5s Hold Delay
         }
     }
 
-    // --- 4. HANDLING ALERTS ---
+    // --- 3. ACTIONS ---
     function handleAlert(bedId, msg, organ) {
-        // UI Text
+        // Update UI
         document.getElementById(`req-p${bedId}`).innerText = msg;
         const badge = document.getElementById(`status-p${bedId}`);
-        const box = document.getElementById(`box-p${bedId}`);
         
-        box.classList.add('active');
-        setTimeout(()=>box.classList.remove('active'), 1000);
-
-        // Highlight Legend
+        // Highlight Gesture
         document.querySelectorAll('.g-card').forEach(c => c.classList.remove('active'));
         if(msg==="WATER") document.getElementById('g-victory').classList.add('active');
         if(msg==="PAIN") document.getElementById('g-four').classList.add('active');
-        if(msg==="HELP") document.getElementById('g-palm').classList.add('active');
 
-        // Critical vs Normal
+        // Notification Logic
         if(msg === "HELP" || organ) {
             badge.innerText = "CRITICAL";
             badge.className = "status-badge alert";
-            sendNotification(`🚨 EMERGENCY: Bed ${bedId} needs ${msg}`);
+            sendPhoneNotification(`EMERGENCY: Bed ${bedId} - ${msg}`);
         } else {
             badge.innerText = "Active";
             badge.className = "status-badge";
-            sendNotification(`Bed ${bedId} requested ${msg}`);
+            sendPhoneNotification(`New Request: Bed ${bedId} - ${msg}`);
         }
 
-        // Stats
+        // Add Log
         const time = new Date().toLocaleTimeString();
-        logs[bedId].unshift({ time, msg });
+        logs[bedId].unshift({ time, msg, organ });
+        const logHtml = `<div class="log-item"><span>${msg}</span><span>${time}</span></div>`;
+        document.getElementById(`log-p${bedId}`).innerHTML = logHtml + document.getElementById(`log-p${bedId}`).innerHTML;
+
+        // Update Stats
         if(msg==="WATER") stats[bedId].water++;
         if(msg==="MEDS") stats[bedId].meds++;
         if(msg==="PAIN") stats[bedId].pain++;
     }
 
-    function sendNotification(text) {
-        // In-App Popup
+    function sendPhoneNotification(text) {
+        // 1. In-App Popup
         const notif = document.getElementById('phone-notif');
         document.getElementById('notif-text').innerText = text;
         notif.classList.add('show');
-        setTimeout(() => notif.classList.remove('show'), 5000);
+        setTimeout(() => notif.classList.remove('show'), 4000);
 
-        // Browser API
-        if (Notification.permission === "granted") new Notification("VisionCare", { body: text });
+        // 2. Audio
+        const speech = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(speech);
 
-        // Speech
-        window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+        // 3. Browser Native Notification
+        if (Notification.permission === "granted") {
+            new Notification("VisionCare Alert", { body: text });
+        }
     }
 
-    // --- 5. MODALS ---
+    // --- 4. MODALS ---
     function openAnalytics(bedId) {
         document.getElementById('modal-analytics').style.display = 'flex';
-        document.getElementById('modal-title').innerText = `Analytics: Bed ${bedId}`;
-        
         const ctxChart = document.getElementById('patientChart').getContext('2d');
         if(window.myChart) window.myChart.destroy();
         
@@ -375,7 +368,7 @@
             data: {
                 labels: ['Water', 'Meds', 'Pain Alerts'],
                 datasets: [{
-                    label: `Bed ${bedId} Requests`,
+                    label: `Bed ${bedId} Activity`,
                     data: [stats[bedId].water, stats[bedId].meds, stats[bedId].pain],
                     backgroundColor: ['#06b6d4', '#4f46e5', '#ef4444']
                 }]
@@ -384,13 +377,20 @@
         });
     }
 
-    function openHistory(bedId) {
-        document.getElementById('modal-history').style.display = 'flex';
-        const list = document.getElementById('history-list');
-        list.innerHTML = "";
-        logs[bedId].forEach(log => {
-            list.innerHTML += `<div style="border-bottom:1px solid #333; padding:10px; display:flex; justify-content:space-between;"><span>${log.msg}</span><span style="color:#666">${log.time}</span></div>`;
-        });
+    function openBodyTwin(bedId) {
+        document.getElementById('modal-body').style.display = 'flex';
+        // Reset colors
+        document.getElementById('twin-head').style.background = "#94a3b8";
+        document.getElementById('twin-chest').style.background = "#94a3b8";
+        document.getElementById('twin-stomach').style.background = "#94a3b8";
+        
+        // Check latest log for pain
+        const lastLog = logs[bedId][0];
+        if(lastLog && lastLog.organ) {
+            document.getElementById(`twin-${lastLog.organ}`).style.background = "#ef4444";
+            document.getElementById('twin-status').innerText = `Pain Detected: ${lastLog.msg}`;
+            document.getElementById('twin-status').style.color = "#ef4444";
+        }
     }
 
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
