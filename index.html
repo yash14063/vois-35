@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VisionCare - Integrated Command</title>
+    <title>VisionCare - Robust Detection</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,8 +19,8 @@
         body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
         /* --- LAYOUT --- */
-        .top-section { height: 45%; padding: 20px; display: flex; gap: 20px; background: #000; border-bottom: 2px solid var(--primary); }
-        .bottom-section { height: 55%; padding: 20px; background: var(--bg); overflow-y: auto; display: flex; gap: 20px; }
+        .top-section { height: 50%; padding: 20px; display: flex; gap: 20px; background: #000; border-bottom: 2px solid var(--primary); }
+        .bottom-section { height: 50%; padding: 20px; background: var(--bg); overflow-y: auto; display: flex; gap: 20px; }
 
         /* --- CAMERA FEED (TOP) --- */
         .cam-container { flex: 2; position: relative; border-radius: 20px; overflow: hidden; border: 2px solid #334155; display: flex; align-items: center; justify-content: center; background: #000; }
@@ -29,9 +29,17 @@
         
         /* OVERLAYS */
         .divider { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.3); border-left: 2px dashed rgba(255,255,255,0.5); z-index: 15; }
+        
+        .bed-tag { position: absolute; top: 15px; padding: 5px 12px; background: rgba(0,0,0,0.6); border-radius: 15px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2); z-index: 20; }
+        .bed-1 { left: 15px; border-left: 4px solid var(--primary); }
+        .bed-2 { right: 15px; border-right: 4px solid var(--accent); }
+
         .reg-controls { position: absolute; bottom: 20px; z-index: 30; display: flex; gap: 20px; }
-        .btn-cam { padding: 10px 20px; background: rgba(0,0,0,0.6); color: white; border: 1px solid white; border-radius: 30px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-cam:hover { background: var(--primary); border-color: var(--primary); }
+        .btn-cam { padding: 12px 25px; background: var(--primary); color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1rem; box-shadow: 0 0 15px rgba(79, 70, 229, 0.5); }
+        .btn-cam:hover { transform: scale(1.05); }
+
+        /* DEBUG TEXT */
+        .debug-status { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: 5px; font-family: monospace; color: #0f0; z-index: 25; font-size: 0.8rem; }
 
         .gesture-legend { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow-y: auto; background: var(--panel); padding: 15px; border-radius: 20px; }
         .g-card { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -72,11 +80,14 @@
             <canvas id="output_canvas"></canvas>
             
             <div class="divider"></div>
+            <div class="bed-tag bed-1">BED 1</div>
+            <div class="bed-tag bed-2">BED 2</div>
+            <div class="debug-status" id="debug-txt">AI Loading...</div>
             
             <div class="reg-controls">
-                <button class="btn-cam" onclick="registerFace(1)">📸 Register Bed 1</button>
-                <button class="btn-cam" onclick="startCamera()" style="background:var(--primary); border:none;">▶ START MONITORING</button>
-                <button class="btn-cam" onclick="registerFace(2)">📸 Register Bed 2</button>
+                <button class="btn-cam" onclick="registerFace(1)" style="background:#334155; font-size:0.8rem;">📸 Reg Bed 1</button>
+                <button class="btn-cam" onclick="startCamera()">▶ START MONITORING</button>
+                <button class="btn-cam" onclick="registerFace(2)" style="background:#334155; font-size:0.8rem;">📸 Reg Bed 2</button>
             </div>
         </div>
 
@@ -178,6 +189,7 @@
     const video = document.getElementById('input_video');
     const canvas = document.getElementById('output_canvas');
     const ctx = canvas.getContext('2d');
+    const debugTxt = document.getElementById('debug-txt');
     
     // Data Storage
     let logs = { 1: [], 2: [] };
@@ -186,20 +198,36 @@
     
     // --- 1. CAMERA & REGISTRATION ---
     async function startCamera() {
+        debugTxt.innerText = "Loading AI Models...";
+        
         const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-        hands.setOptions({maxNumHands: 2, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
+        
+        // RELAXED SETTINGS FOR EASIER DETECTION
+        hands.setOptions({
+            maxNumHands: 2, 
+            modelComplexity: 1, 
+            minDetectionConfidence: 0.5, 
+            minTrackingConfidence: 0.5
+        });
         hands.onResults(onResults);
 
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
-        video.srcObject = stream;
-        video.onloadedmetadata = () => {
-            video.play();
-            const camera = new Camera(video, {
-                onFrame: async () => { await hands.send({image: video}); },
-                width: 1280, height: 720
-            });
-            camera.start();
-        };
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+                video.play();
+                debugTxt.innerText = "System Active - Scanning";
+                
+                const camera = new Camera(video, {
+                    onFrame: async () => { await hands.send({image: video}); },
+                    width: 1280, height: 720
+                });
+                camera.start();
+            };
+        } catch(e) { 
+            alert("Camera Error: " + e.message); 
+            debugTxt.innerText = "Camera Error";
+        }
     }
 
     function registerFace(bedId) {
@@ -217,47 +245,67 @@
 
     // --- 2. GESTURE LOGIC ---
     function onResults(results) {
+        // Draw video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
         
-        // Divider
+        // Draw Split Line
         ctx.beginPath(); ctx.moveTo(canvas.width/2, 0); ctx.lineTo(canvas.width/2, canvas.height);
         ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 2; ctx.stroke();
 
-        if (results.multiHandLandmarks) {
-            for (const landmarks of results.multiHandLandmarks) {
-                drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {color: '#4f46e5', lineWidth: 2});
-                drawLandmarks(ctx, landmarks, {color: '#ef4444', lineWidth: 1});
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            
+            for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+                const lm = results.multiHandLandmarks[i];
+                
+                // DRAW SKELETON (VISUAL CONFIRMATION)
+                drawConnectors(ctx, lm, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 3});
+                drawLandmarks(ctx, lm, {color: '#FF0000', lineWidth: 1});
                 
                 // Identify Bed (X < 0.5 is Left/Bed 1)
-                const bedId = landmarks[0].x < 0.5 ? 1 : 2;
-                detectGesture(landmarks, bedId);
+                const bedId = lm[0].x < 0.5 ? 1 : 2;
+                detectGesture(lm, bedId);
             }
         }
     }
 
     function detectGesture(lm, bedId) {
         let fingers = [];
-        [8, 12, 16, 20].forEach(t => fingers.push(lm[t].y < lm[t-2].y ? 1 : 0)); // Fingers
-        fingers.unshift(lm[4].x < lm[3].x ? 1 : 0); // Thumb
+        
+        // THUMB: Simple X-distance check from pinky base (works for both hands mostly)
+        // distance(ThumbTip 4, PinkyBase 17)
+        // If thumb is far from pinky base, it's open.
+        
+        // SIMPLIFIED FINGER COUNTING (Y-Axis Check)
+        // Is Tip (8) higher than Base (5)? (Y value is lower at top)
+        let count = 0;
+        if(lm[8].y < lm[6].y) count++; // Index
+        if(lm[12].y < lm[10].y) count++; // Middle
+        if(lm[16].y < lm[14].y) count++; // Ring
+        if(lm[20].y < lm[18].y) count++; // Pinky
+        // Thumb roughly
+        if(Math.abs(lm[4].x - lm[17].x) > 0.15) count++;
 
-        const fStr = fingers.join("");
+        // DEBUG
+        // console.log("Fingers Open:", count);
+
         let msg = "";
         let organ = "";
 
-        // Mapping
-        if(fStr === "00000") { msg = "STOP"; }
-        else if(fStr === "11111") { msg = "HELP"; }
-        else if(fStr === "01100") { msg = "WATER"; }
-        else if(fStr === "01000") { msg = "MEDS"; }
-        else if(fStr === "10000") { msg = "YES"; }
-        else if(fStr === "01110") { msg = "FOOD"; organ="stomach"; }
-        else if(fStr === "01111") { msg = "PAIN"; organ="head"; }
+        // Mapping based on COUNT + Pattern
+        if(count === 0) { msg = "STOP"; } // Fist
+        else if(count === 5) { msg = "HELP"; } // Open Hand
+        else if(count === 2) { msg = "WATER"; } // Victory (Index+Middle)
+        else if(count === 1) { msg = "MEDS"; } // Index only
+        else if(count === 3) { msg = "FOOD"; organ="stomach"; }
+        else if(count === 4) { msg = "PAIN"; organ="head"; }
 
         if(msg && msg !== lastAction) {
             lastAction = msg;
             handleAlert(bedId, msg, organ);
-            setTimeout(() => lastAction = "", 2000); // Debounce
+            setTimeout(() => lastAction = "", 2000); // 2s Debounce
         }
     }
 
@@ -267,10 +315,12 @@
         document.getElementById(`req-p${bedId}`).innerText = msg;
         const badge = document.getElementById(`status-p${bedId}`);
         
-        // Highlight Gesture
+        // Highlight Gesture Card
         document.querySelectorAll('.g-card').forEach(c => c.classList.remove('active'));
-        // Simple mapping for demo highlight
+        // Simple map for demo
         if(msg==="WATER") document.getElementById('g-victory').classList.add('active');
+        if(msg==="MEDS") document.getElementById('g-point').classList.add('active');
+        if(msg==="HELP") document.getElementById('g-palm').classList.add('active');
         if(msg==="PAIN") document.getElementById('g-four').classList.add('active');
 
         // Logic
@@ -332,7 +382,7 @@
         document.getElementById('twin-head').style.background = "#cbd5e1";
         document.getElementById('twin-stomach').style.background = "#cbd5e1";
         
-        // Check recent logs for pain location to highlight twin
+        // Check recent logs
         const lastLog = logs[bedId][0];
         if(lastLog && lastLog.msg === "PAIN") document.getElementById('twin-head').style.background = "#ef4444";
         if(lastLog && lastLog.msg === "FOOD") document.getElementById('twin-stomach').style.background = "#ef4444";
