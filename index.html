@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VisionCare - Connected Hospital System</title>
+    <title>VisionCare - High Precision</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -37,23 +37,21 @@
         .bed-1 { left: 20px; border-left: 5px solid var(--primary); }
         .bed-2 { right: 20px; border-right: 5px solid #10b981; }
 
-        .status-overlay { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 15px 40px; border-radius: 50px; font-size: 1.5rem; font-weight: 800; z-index: 30; min-width: 300px; text-align: center; }
+        /* DEBUG OVERLAY */
+        .debug-overlay { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); color: #00ff00; font-family: monospace; padding: 5px 10px; border-radius: 5px; z-index: 25; font-size: 0.8rem; }
 
         /* --- DOCTOR DASHBOARD --- */
         .doc-layout { display: grid; grid-template-columns: 280px 1fr 320px; height: 100%; }
         
-        /* SIDEBAR */
         .sidebar { background: white; border-right: 1px solid #e2e8f0; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
         .nav-btn { padding: 15px; border-radius: 12px; color: #64748b; font-weight: 600; display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .nav-btn.active { background: #eff6ff; color: var(--primary); }
 
-        /* MAIN FEED */
         .main-feed { padding: 30px; overflow-y: auto; }
         .patient-card { background: white; border-radius: 16px; padding: 25px; margin-bottom: 20px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; transition: 0.3s; }
         .patient-card.emergency { border: 2px solid var(--alert); background: #fef2f2; animation: flash 2s infinite; }
         @keyframes flash { 0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } 50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0.1); } }
 
-        /* RIGHT PANEL (DETAILS) */
         .details-panel { background: white; border-left: 1px solid #e2e8f0; padding: 25px; display: flex; flex-direction: column; gap: 20px; }
         
         .body-twin { height: 300px; background: #f8fafc; border-radius: 16px; position: relative; margin-top: 10px; }
@@ -66,12 +64,10 @@
         .log-box { flex: 1; overflow-y: auto; border-top: 1px solid #e2e8f0; padding-top: 10px; }
         .log-item { padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; color: #475569; }
 
-        /* PHONE NOTIFICATION */
         .phone-alert { position: fixed; top: 20px; right: 20px; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); width: 320px; z-index: 9999; transform: translateX(150%); transition: 0.5s; display: flex; gap: 15px; align-items: center; }
         .phone-alert.show { transform: translateX(0); }
         .phone-icon { width: 50px; height: 50px; background: var(--alert); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; }
 
-        /* START BUTTON */
         .big-btn { padding: 15px 40px; font-size: 1.2rem; background: var(--primary); color: white; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; position: absolute; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     </style>
 </head>
@@ -99,7 +95,7 @@
             <div class="split-line"></div>
             <div class="bed-label bed-1">BED 1 (Alex)</div>
             <div class="bed-label bed-2">BED 2 (Sarah)</div>
-            <div class="status-overlay" id="room-status">System Standby</div>
+            <div class="debug-overlay" id="debug-text">AI Status: Waiting...</div>
         </div>
     </div>
 
@@ -176,7 +172,7 @@
     const video = document.getElementById('input_video');
     const canvas = document.getElementById('output_canvas');
     const ctx = canvas.getContext('2d');
-    const roomStatus = document.getElementById('room-status');
+    const debugText = document.getElementById('debug-text');
     const startBtn = document.getElementById('start-cam-btn');
 
     // Doctor UI
@@ -219,7 +215,8 @@
         startBtn.innerText = "LOADING AI...";
         
         const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-        hands.setOptions({maxNumHands: 2, minDetectionConfidence: 0.7}); // High confidence needed
+        // Tuned for better detection
+        hands.setOptions({maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.5});
         hands.onResults(onResults);
 
         try {
@@ -229,7 +226,6 @@
                 video.play();
                 startBtn.style.display = 'none';
                 
-                // Start Loop
                 const camera = new Camera(video, {
                     onFrame: async () => { await hands.send({image: video}); },
                     width: 1280, height: 720
@@ -251,46 +247,59 @@
         ctx.beginPath(); ctx.moveTo(canvas.width/2, 0); ctx.lineTo(canvas.width/2, canvas.height);
         ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 4; ctx.setLineDash([15, 15]); ctx.stroke();
 
-        if (results.multiHandLandmarks) {
-            for (const landmarks of results.multiHandLandmarks) {
-                drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {color: '#3b82f6', lineWidth: 3});
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            
+            for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+                const lm = results.multiHandLandmarks[i];
+                const handedness = results.multiHandedness[i].label; // Left or Right
                 
-                // Identify Bed (X Coordinate)
-                // 0.0 is Left (Bed 1), 1.0 is Right (Bed 2)
-                // Note: Video is mirrored via CSS, so logic is inverted visually
-                const x = landmarks[0].x;
+                // Draw Green Skeleton to confirm tracking
+                drawConnectors(ctx, lm, HAND_CONNECTIONS, {color: '#00ff00', lineWidth: 4});
+                drawLandmarks(ctx, lm, {color: '#ff0000', lineWidth: 2});
+                
+                // Identify Bed
+                const x = lm[0].x;
                 const bedId = x < 0.5 ? 1 : 2; 
                 
-                detectGesture(landmarks, bedId);
+                detectGesture(lm, bedId, handedness);
             }
+        } else {
+            debugText.innerText = "No Hands Detected";
         }
     }
 
-    function detectGesture(lm, bedId) {
+    function detectGesture(lm, bedId, handSide) {
         let fingers = [];
-        // Thumb (X)
-        fingers.push(lm[4].x < lm[3].x ? 1 : 0);
-        // Fingers (Y)
+        
+        // Thumb Logic (Corrected for Left vs Right hand)
+        if (handSide === 'Right') {
+            fingers.push(lm[4].x < lm[3].x ? 1 : 0);
+        } else {
+            fingers.push(lm[4].x > lm[3].x ? 1 : 0);
+        }
+
+        // Fingers (Index, Middle, Ring, Pinky) - Check Tip vs PIP joint
         [8, 12, 16, 20].forEach(t => fingers.push(lm[t].y < lm[t-2].y ? 1 : 0));
         
         const fStr = fingers.join("");
+        
+        // Debug output on screen
+        debugText.innerText = `Bed ${bedId} | Fingers: ${fStr}`;
+
         let msg = "";
         let organ = "";
 
         // ROBUST MAPPING
         if (fStr === "00000") { msg = "STOP"; }
         else if (fStr === "11111") { msg = "HELP"; }
-        else if (fStr === "01100") { msg = "WATER"; }
+        else if (fStr === "01100") { msg = "WATER"; } // Victory Sign
+        else if (fStr === "01000") { msg = "MEDS"; }  // Pointing Up
         else if (fStr === "11100") { msg = "CHEST PAIN"; organ = "chest"; }
         else if (fStr === "01111") { msg = "HEADACHE"; organ = "head"; }
 
         if (msg && msg !== lastAction) {
             lastAction = msg;
             
-            // Show on Room Monitor
-            roomStatus.innerText = `BED ${bedId}: ${msg}`;
-            roomStatus.style.background = organ ? "red" : "rgba(0,0,0,0.8)";
-
             // SEND TO DOCTOR
             channel.postMessage({
                 bed: bedId,
@@ -299,8 +308,8 @@
                 time: new Date().toLocaleTimeString()
             });
 
-            // Debounce
-            setTimeout(() => { lastAction = ""; roomStatus.innerText = "Monitoring..."; roomStatus.style.background="rgba(0,0,0,0.8)"; }, 3000);
+            // Debounce to prevent spam
+            setTimeout(() => { lastAction = ""; }, 2500);
         }
     }
 
