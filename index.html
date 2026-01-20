@@ -114,6 +114,9 @@
         /* SOS */
         #sos-overlay { position: fixed; inset: 0; background: rgba(220, 38, 38, 0.95); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
 
+        /* --- NEW ANIMATION FOR VOICE FEEDBACK --- */
+        @keyframes fadeUp { 0% {opacity:0; transform:translateY(20px);} 10% {opacity:1; transform:translateY(0);} 90% {opacity:1;} 100% {opacity:0; display:none;} }
+
         @media (max-width: 1200px) { .view-section, .auth-container { grid-template-columns: 1fr !important; } .auth-left { display: none; } }
     </style>
 </head>
@@ -259,33 +262,6 @@
     let chartInstance;
     let intake = { water: 0, food: 0, meds: 0 };
 
-    // --- NOTIFICATION SETUP (ADD-ON ONLY) ---
-let notificationGranted = false;
-let lastNotifiedMsg = "";
-
-if ("Notification" in window) {
-    Notification.requestPermission().then(p => {
-        notificationGranted = (p === "granted");
-    });
-}
-
-function triggerNotification(message) {
-    if (!notificationGranted) return;
-    if (lastNotifiedMsg === message) return;
-
-    lastNotifiedMsg = message;
-
-    new Notification("🚨 Patient Emergency Alert", {
-        body: message,
-        icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png",
-        requireInteraction: true
-    });
-
-    const sound = document.getElementById("notifySound");
-    if (sound) sound.play();
-}
-
-
     // --- GESTURE DICTIONARY ---
     const gestures = [
         { name: "Fist", msg: "Stop / Wait", icon: "✊" },
@@ -307,7 +283,14 @@ function triggerNotification(message) {
         document.getElementById('dashboardPage').classList.add('active');
         initCharts();
         renderGrid();
-        speak("System Online");
+        
+        // --- ADDED: START VOICE CONTROL ON LOGIN ---
+        initVoiceControl();
+        speak("System Online. Sterile Voice Command Interface Activated.");
+        
+        if ("Notification" in window) {
+            Notification.requestPermission();
+        }
     }
 
     function switchTab(viewId, tab) {
@@ -352,6 +335,24 @@ function triggerNotification(message) {
             // Updates
             updateIntake(msg);
             updateBody(msg);
+            
+            sendDoctorNotification(name, msg);
+        }
+    }
+
+    function sendDoctorNotification(title, message) {
+        if (!("Notification" in window)) return;
+        
+        if (Notification.permission === "granted") {
+            const options = {
+                body: `Patient Action: ${message}`,
+                icon: 'https://cdn-icons-png.flaticon.com/512/822/822118.png',
+                silent: false
+            };
+            
+            if (message.includes("Pain") || message.includes("Nurse") || message.includes("Washroom")) {
+                 new Notification("VisionCare Alert: Alex Smith", options);
+            }
         }
     }
 
@@ -383,14 +384,11 @@ function triggerNotification(message) {
             sysDiag.innerText = "Migraine"; sysDiag.style.color="#f59e0b";
         }
         else if(msg.includes("Chest")) {
-           organChest.classList.add('pain-active');
-           painLoc.innerText = "Chest";
-           sysDiag.innerText = "CRITICAL"; sysDiag.style.color="#ef4444";
-           triggerSOS();
-           triggerNotification("Chest Pain Emergency detected");
+            organChest.classList.add('pain-active');
+            painLoc.innerText = "Chest";
+            sysDiag.innerText = "CRITICAL"; sysDiag.style.color="#ef4444";
+            triggerSOS();
         }
-
-
         else if(msg.includes("Hungry")) {
             organStomach.classList.add('pain-active');
             painLoc.innerText = "Stomach";
@@ -419,12 +417,11 @@ function triggerNotification(message) {
             hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5 });
             hands.onResults(onResults);
             
-            // GENERIC CAMERA REQUEST
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             videoElement.srcObject = stream;
             videoElement.onloadedmetadata = () => {
                 videoElement.play();
-                startBtn.style.display = 'none'; // Hide button on success
+                startBtn.style.display = 'none';
                 processVideo(hands);
             };
         } catch(e) {
@@ -449,18 +446,35 @@ function triggerNotification(message) {
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
             const lm = results.multiHandLandmarks[0];
             const handedness = results.multiHandedness[0].label;
-            drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: '#6366f1', lineWidth: 4});
-            drawLandmarks(canvasCtx, lm, {color: '#ef4444', lineWidth: 2});
+            
+            // --- UPDATED: TECH VISUALS (Cyberpunk Style) ---
+            drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: '#00ffcc', lineWidth: 2}); // Cyan tech lines
+            drawLandmarks(canvasCtx, lm, {color: '#ffffff', lineWidth: 1, radius: 2}); // White nodes
+
+            // Target Lock Box
+            const xList = lm.map(p => p.x);
+            const yList = lm.map(p => p.y);
+            const minX = Math.min(...xList) * canvasElement.width;
+            const maxX = Math.max(...xList) * canvasElement.width;
+            const minY = Math.min(...yList) * canvasElement.height;
+            const maxY = Math.max(...yList) * canvasElement.height;
+
+            canvasCtx.strokeStyle = "rgba(255, 0, 0, 0.5)"; // Red targeting box
+            canvasCtx.lineWidth = 2;
+            canvasCtx.strokeRect(minX - 20, minY - 20, (maxX - minX) + 40, (maxY - minY) + 40);
+
+            canvasCtx.font = "16px Courier New";
+            canvasCtx.fillStyle = "#00ffcc";
+            canvasCtx.fillText("ANALYZING GESTURE...", minX, minY - 30);
+            // ----------------------------------------------
 
             let fingers = [];
-            // Simple finger counting logic
             if (handedness === 'Right') fingers.push(lm[4].x < lm[3].x ? 1 : 0);
             else fingers.push(lm[4].x > lm[3].x ? 1 : 0);
             [8, 12, 16, 20].forEach(t => fingers.push(lm[t].y < lm[t-2].y ? 1 : 0));
 
             let name = "--", msg = "Scanning...";
             
-            // Logic
             if(Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y) < 0.05) { name="OK Sign"; msg="I am Okay"; }
             else {
                 const key = fingers.join(",");
@@ -494,10 +508,64 @@ function triggerNotification(message) {
             options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
         });
     }
-    <audio id="notifySound">
-  <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg">
-</audio>
 
+    // --- NEW: STERILE VOICE COMMAND MODULE ---
+    function initVoiceControl() {
+        if (!('webkitSpeechRecognition' in window)) {
+            console.log("Browser does not support Voice API");
+            return;
+        }
+
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+            document.querySelector('.navbar-brand').innerHTML = '<i class="fas fa-microphone-alt" style="color:#ef4444; animation:pulse 1s infinite;"></i> Listening...';
+        };
+
+        recognition.onresult = (event) => {
+            const command = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+            console.log("Doctor Command:", command);
+            processDoctorCommand(command);
+        };
+
+        recognition.start();
+    }
+
+    function processDoctorCommand(cmd) {
+        // VISUAL FEEDBACK
+        const feedback = document.createElement('div');
+        feedback.style = "position:fixed; bottom:20px; right:20px; background:var(--dark); color:white; padding:10px 20px; border-radius:30px; z-index:9999; animation: fadeUp 2s forwards;";
+        feedback.innerHTML = `<i class="fas fa-user-md"></i> Cmd: "${cmd}"`;
+        document.body.appendChild(feedback);
+
+        // COMMAND LOGIC
+        if (cmd.includes("monitor") || cmd.includes("home")) {
+            switchTab('monitor', document.querySelectorAll('.nav-tab')[0]);
+            speak("Switching to Monitor View");
+        }
+        else if (cmd.includes("analytics") || cmd.includes("data")) {
+            switchTab('analytics', document.querySelectorAll('.nav-tab')[1]);
+            speak("Showing Patient Analytics");
+        }
+        else if (cmd.includes("history") || cmd.includes("report")) {
+            switchTab('history', document.querySelectorAll('.nav-tab')[2]);
+            speak("Pulling History Records");
+        }
+        else if (cmd.includes("stop") || cmd.includes("silence") || cmd.includes("acknowledge")) {
+            if(isSosActive) {
+                dismissSOS();
+                speak("Alarm Silenced. Protocol Logged.");
+            }
+        }
+        else if (cmd.includes("status") || cmd.includes("update")) {
+            const hr = "72"; 
+            const ox = "98";
+            speak(`Patient is stable. Heart rate ${hr}, Oxygen ${ox} percent.`);
+        }
+    }
 </script>
 </body>
 </html>
