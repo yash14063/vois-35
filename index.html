@@ -144,6 +144,9 @@
     <div class="dashboard" id="dashboardPage">
         
         <div class="navbar">
+            <button onclick="testNotification()" style="padding:5px 10px; font-size:0.8rem; background:#ef4444; color:white; border:none; border-radius:5px; cursor:pointer;">
+            🔔 Test Alert
+                </button>
             <div class="navbar-brand"><i class="fas fa-eye"></i> VisionCare Pro</div>
             <div class="nav-tabs">
                 <div class="nav-tab active" onclick="switchTab('monitor', this)">📡 Monitor</div>
@@ -276,7 +279,28 @@
         { name: "Three", msg: "Hungry", icon: "🥘" },
         { name: "Four", msg: "Headache", icon: "🤕" }
     ];
+    
+    function testNotification() {
+    // 1. Check if browser supports it
+    if (!("Notification" in window)) {
+        alert("This browser does not support desktop notifications");
+        return;
+    }
 
+    // 2. Request permission manually
+    Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+            const notif = new Notification("Test Alert", {
+                body: "System notifications are working!",
+                icon: "https://cdn-icons-png.flaticon.com/512/822/822118.png"
+            });
+            // Play a sound for effect
+            speak("Test notification sent");
+        } else {
+            alert("Permission denied. Please click the Lock icon in URL bar and 'Allow' Notifications.");
+        }
+    });
+}
     // --- LOGIC ---
     function handleLogin() {
         document.getElementById('authPage').style.display = 'none';
