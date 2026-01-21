@@ -22,7 +22,7 @@
             --dark: #1e293b; --light: #f8fafc; --border: #e2e8f0; 
             --text: #334155; --text-light: #64748b; 
         }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; color: var(--text); }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; color: var(--text); overflow: hidden; }
         
         /* AUTH SCREEN */
         .auth-container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; max-width: 900px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; z-index: 2000; position: fixed; inset: 0; margin: auto; height: 600px; }
@@ -46,8 +46,8 @@
         .nav-tab:hover { background: white; }
         .nav-tab.active { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
-        /* CONTENT AREA */
-        .main-content { flex: 1; padding: 20px; overflow-y: auto; }
+        /* CONTENT AREA - FIXED SCROLLING */
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; height: calc(100vh - 80px); }
         .view-section { display: none; gap: 20px; height: 100%; }
         .view-section.active { display: grid; }
 
@@ -57,7 +57,7 @@
         #view-history { display: block; }
 
         /* PANELS */
-        .panel { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; margin-bottom: 20px; }
+        .panel { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; margin-bottom: 20px; max-height: 100%; }
         .panel-title { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; display: flex; justify-content: space-between; }
 
         /* WIDGETS */
@@ -65,10 +65,11 @@
         .status-label { font-size: 0.8rem; color: var(--text-light); font-weight: 600; text-transform: uppercase; }
         .status-val { font-size: 1.2rem; font-weight: 700; color: var(--dark); }
 
-        /* CAMERA BOX */
+        /* CAMERA BOX - FIXED HEIGHT BUG */
         .camera-box { 
             background: black; border-radius: 12px; position: relative; overflow: hidden; 
-            flex: 1; display: flex; align-items: center; justify-content: center; min-height: 400px;
+            flex: 1; display: flex; align-items: center; justify-content: center; 
+            min-height: 400px; max-height: 60vh; /* Prevents infinite growing */
             border: 4px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
         video { position: absolute; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
@@ -144,9 +145,9 @@
     <div class="dashboard" id="dashboardPage">
         
         <div class="navbar">
-            <button onclick="testNotification()" style="padding:5px 10px; font-size:0.8rem; background:#ef4444; color:white; border:none; border-radius:5px; cursor:pointer;">
-            🔔 Test Alert
-                </button>
+            <button onclick="testNotification()" style="padding:8px 15px; font-size:0.85rem; background:#ef4444; color:white; border:none; border-radius:20px; cursor:pointer; font-weight:bold;">
+             🔔 Test Notification
+            </button>
             <div class="navbar-brand"><i class="fas fa-eye"></i> VisionCare Pro</div>
             <div class="nav-tabs">
                 <div class="nav-tab active" onclick="switchTab('monitor', this)">📡 Monitor</div>
@@ -264,6 +265,10 @@
     let isSosActive = false;
     let chartInstance;
     let intake = { water: 0, food: 0, meds: 0 };
+    
+    // --- FIX 1: COOLDOWN VARIABLES ---
+    const COOLDOWN_MS = 3000; // 3 Seconds
+    let lastGestureTime = 0;
 
     // --- GESTURE DICTIONARY ---
     const gestures = [
@@ -281,26 +286,23 @@
     ];
     
     function testNotification() {
-    // 1. Check if browser supports it
-    if (!("Notification" in window)) {
-        alert("This browser does not support desktop notifications");
-        return;
+        if (!("Notification" in window)) {
+            alert("This browser does not support desktop notifications");
+            return;
+        }
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                new Notification("Test Alert", {
+                    body: "System notifications are working!",
+                    icon: "https://cdn-icons-png.flaticon.com/512/822/822118.png"
+                });
+                speak("Test notification sent");
+            } else {
+                alert("Permission denied. Please click the Lock icon in URL bar and 'Allow' Notifications.");
+            }
+        });
     }
 
-    // 2. Request permission manually
-    Notification.requestPermission().then(permission => {
-        if (permission === "granted") {
-            const notif = new Notification("Test Alert", {
-                body: "System notifications are working!",
-                icon: "https://cdn-icons-png.flaticon.com/512/822/822118.png"
-            });
-            // Play a sound for effect
-            speak("Test notification sent");
-        } else {
-            alert("Permission denied. Please click the Lock icon in URL bar and 'Allow' Notifications.");
-        }
-    });
-}
     // --- LOGIC ---
     function handleLogin() {
         document.getElementById('authPage').style.display = 'none';
@@ -308,7 +310,6 @@
         initCharts();
         renderGrid();
         
-        // --- ADDED: START VOICE CONTROL ON LOGIN ---
         initVoiceControl();
         speak("System Online. Sterile Voice Command Interface Activated.");
         
@@ -343,9 +344,15 @@
         if(msg.includes("Pain")) msgBox.className = "message-box message-emergency";
         else msgBox.className = "message-box";
 
-        // Action
-        if(msg !== lastSpoken && msg !== "Scanning..." && !isSosActive) {
+        // --- FIX 2: CHECK COOLDOWN BEFORE ACTION ---
+        const now = Date.now();
+        if (msg === "Scanning..." || isSosActive) return;
+        
+        if (msg !== lastSpoken && (now - lastGestureTime > COOLDOWN_MS)) {
+            
+            lastGestureTime = now; // Reset timer
             lastSpoken = msg;
+            
             if(!voiceMuted) speak(msg);
             
             // Log
@@ -360,6 +367,7 @@
             updateIntake(msg);
             updateBody(msg);
             
+            // --- FIX 3: SEND NOTIFICATION FOR ALL GESTURES ---
             sendDoctorNotification(name, msg);
         }
     }
@@ -373,10 +381,8 @@
                 icon: 'https://cdn-icons-png.flaticon.com/512/822/822118.png',
                 silent: false
             };
-            
-            if (message.includes("Pain") || message.includes("Nurse") || message.includes("Washroom")) {
-                 new Notification("VisionCare Alert: Alex Smith", options);
-            }
+            // Removed filter: Now sends for everything
+            new Notification(`VisionCare Alert: ${title}`, options);
         }
     }
 
@@ -472,6 +478,7 @@
             const handedness = results.multiHandedness[0].label;
             
             // --- UPDATED: TECH VISUALS (Cyberpunk Style) ---
+            
             drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: '#00ffcc', lineWidth: 2}); // Cyan tech lines
             drawLandmarks(canvasCtx, lm, {color: '#ffffff', lineWidth: 1, radius: 2}); // White nodes
 
@@ -533,7 +540,7 @@
         });
     }
 
-    // --- NEW: STERILE VOICE COMMAND MODULE ---
+    // --- FIX 4: ROBUST VOICE CONTROL (AUTO-RESTART) ---
     function initVoiceControl() {
         if (!('webkitSpeechRecognition' in window)) {
             console.log("Browser does not support Voice API");
@@ -541,12 +548,17 @@
         }
 
         const recognition = new webkitSpeechRecognition();
-        recognition.continuous = true;
+        recognition.continuous = false; // Changed to false for better loop control
         recognition.interimResults = false;
         recognition.lang = 'en-US';
 
         recognition.onstart = () => {
             document.querySelector('.navbar-brand').innerHTML = '<i class="fas fa-microphone-alt" style="color:#ef4444; animation:pulse 1s infinite;"></i> Listening...';
+        };
+
+        // Auto Restart Logic
+        recognition.onend = () => {
+             recognition.start(); 
         };
 
         recognition.onresult = (event) => {
