@@ -1,52 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Data Management</title>
-    <script>
-        // Authentication state tracking
-        let isAuthenticated = false;
-        function authenticateDoctor(credentials) {
-            // Logic to authenticate the doctor
-            // If successful:
-            isAuthenticated = true;
-            loadDashboard();
-        }
-        
-        function loadDashboard() {
-            if (!isAuthenticated) {
-                alert('Please Sign In First!');
-                return;
-            }
-            // Code to load the dashboard
-        }
-
-        // Notification manager
-        const notificationManager = {
-            notifications: [],
-            sendNotification(action) {
-                this.notifications.push(action);
-                console.log('Notification sent: ', action);
-            },
-            getNotifications() {
-                return this.notifications;
-            }
-        };
-
-        // Patient data persistence
-        function savePatientData(data) {
-            if (!isAuthenticated) {
-                alert('You must be authenticated to save patient data!');
-                return;
-            }
-            // Logic to save patient data
-            notificationManager.sendNotification('Patient data saved.');
-        }
-    </script>
+    <title>Patient Management System</title>
+    <script src="https://cdn.example.com/notification.js"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Welcome to Patient Data Management System</h1>
-    <button onclick="loadDashboard()">Load Dashboard</button>
+    <h1>Patient Management System</h1>
+    <form id="loginForm" onsubmit="return validateLogin();">
+        <label for="username">Username:</label>
+        <input type="text" id="username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" required>
+        <input type="submit" value="Login">
+    </form>
+    <div id="notificationArea"></div>
+    <script>
+        function validateLogin() {
+            // Placeholder for real authentication logic
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            if (username === 'doctor' && password === 'password') {
+                showNotification('Login successful!');
+                return true;
+            } else {
+                showNotification('Invalid credentials, please try again.');
+                return false;
+            }
+        }
+
+        function showNotification(message) {
+            const notificationArea = document.getElementById('notificationArea');
+            notificationArea.innerHTML = `<div class='notification'>${message}</div>`;
+            setTimeout(() => {
+                notificationArea.innerHTML = '';
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
