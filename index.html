@@ -1,40 +1,81 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Patient Management System</title>
-    <script src="https://cdn.example.com/notification.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionCare System</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Patient Management System</h1>
-    <form id="loginForm" onsubmit="return validateLogin();">
-        <label for="username">Username:</label>
-        <input type="text" id="username" required>
-        <label for="password">Password:</label>
-        <input type="password" id="password" required>
-        <input type="submit" value="Login">
-    </form>
-    <div id="notificationArea"></div>
-    <script>
-        function validateLogin() {
-            // Placeholder for real authentication logic
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            if (username === 'doctor' && password === 'password') {
-                showNotification('Login successful!');
-                return true;
-            } else {
-                showNotification('Invalid credentials, please try again.');
-                return false;
-            }
-        }
-
-        function showNotification(message) {
-            const notificationArea = document.getElementById('notificationArea');
-            notificationArea.innerHTML = `<div class='notification'>${message}</div>`;
-            setTimeout(() => {
-                notificationArea.innerHTML = '';
-            }, 3000);
-        }
-    </script>
+    <header>
+        <h1>VisionCare Medical Monitoring Dashboard</h1>
+        <!-- Doctor Login Form -->
+        <div id="login">
+            <h2>Doctor Login</h2>
+            <form id="login-form">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </header>
+    <main>
+        <!-- Notification System -->
+        <section id="notifications">
+            <h2>Notifications</h2>
+            <ul id="notification-list"></ul>
+        </section>
+        
+        <!-- Activity Logging -->
+        <section id="activity-log">
+            <h2>Activity Log</h2>
+            <table id="log-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Event</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Activity log entries will go here -->
+                </tbody>
+            </table>
+        </section>
+        
+        <!-- Patient Event History -->
+        <section id="patient-history">
+            <h2>Patient Event History</h2>
+            <table id="history-table">
+                <thead>
+                    <tr>
+                        <th>Patient ID</th>
+                        <th>Event</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Patient history entries will go here -->
+                </tbody>
+            </table>
+        </section>
+        
+        <!-- Live Camera Feed with Hand Gesture Recognition -->
+        <section id="live-feed">
+            <h2>Live Camera Feed</h2>
+            <video id="camera-feed" autoplay></video>
+        </section>
+        
+        <!-- Real-Time Vitals Display -->
+        <section id="vitals">
+            <h2>Real-Time Vitals Display</h2>
+            <div id="vital-signs">
+                <p>Heart Rate: <span id="heart-rate">--</span> bpm</p>
+                <p>Blood Pressure: <span id="blood-pressure">--</span> mmHg</p>
+            </div>
+        </section>
+    </main>
+    <script src="script.js"></script>
 </body>
 </html>
