@@ -1,189 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VisionCare AI - ICU Monitoring</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionCare AI - Medical Dashboard</title>
 
-    <!-- ================= CSS ================= -->
-    <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/layout.css" />
-    <link rel="stylesheet" href="/css/animations.css" />
-    <link rel="stylesheet" href="/css/medical-theme.css" />
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/medical-theme.css">
 
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" defer></script>
 </head>
-
 <body>
 
-    <!-- ================= HEADER ================= -->
-    <header class="app-header">
-        <div class="logo">
-            <h1>VisionCare AI</h1>
-            <span class="tagline">Intelligent ICU Monitoring System</span>
+    <!-- LOGIN PAGE -->
+    <div id="authPage" class="auth-container">
+        <div class="auth-left">
+            <h1>🎯 VisionCare AI</h1>
+            <p>AI-Powered Patient Monitoring System</p>
         </div>
-
-        <div class="header-controls">
-            <button id="voiceToggleBtn" class="control-btn">
-                🎤 Voice
-            </button>
-            <button id="emergencyBtn" class="emergency-btn">
-                🚨 Emergency
-            </button>
+        <div class="auth-right">
+            <h2>Medical Login</h2>
+            <div class="form-group">
+                <label>Doctor ID</label>
+                <input type="text" value="DR-CHEN-9921" readonly>
+            </div>
+            <div class="form-group">
+                <label>Access Key</label>
+                <input type="password" value="********" readonly>
+            </div>
+            <button class="btn" onclick="handleLogin()">Access Dashboard</button>
         </div>
-    </header>
-
-    <!-- ================= MAIN LAYOUT ================= -->
-    <div class="app-layout">
-
-        <!-- ===== LEFT SIDEBAR ===== -->
-        <aside class="sidebar">
-            <h2>Patients</h2>
-            <div id="patientContainer" class="patient-list"></div>
-        </aside>
-
-        <!-- ===== MAIN DASHBOARD ===== -->
-        <main class="dashboard">
-
-            <!-- Patient Info -->
-            <section class="patient-info-card">
-                <h2 id="patientName">No Patient Selected</h2>
-                <p id="patientAge"></p>
-            </section>
-
-            <!-- Vitals Grid -->
-            <section class="vitals-grid">
-
-                <div class="vital-box">
-                    <h3>Heart Rate</h3>
-                    <p id="heartRateValue">--</p>
-                </div>
-
-                <div class="vital-box">
-                    <h3>Blood Pressure</h3>
-                    <p id="bpValue">-- / --</p>
-                </div>
-
-                <div class="vital-box">
-                    <h3>Temperature</h3>
-                    <p id="tempValue">--</p>
-                </div>
-
-                <div class="vital-box">
-                    <h3>SpO₂</h3>
-                    <p id="spo2Value">--</p>
-                </div>
-
-            </section>
-
-            <!-- Risk Section -->
-            <section class="risk-panel">
-                <h3>Risk Level</h3>
-                <div id="riskLevel" class="risk-badge low">LOW</div>
-                <p id="recommendation">Stable condition.</p>
-            </section>
-
-            <!-- Charts Section -->
-            <section class="charts-panel">
-                <canvas id="vitalChart"></canvas>
-            </section>
-
-        </main>
-
     </div>
 
-    <!-- ================= CORE SCRIPTS ================= -->
-    <script src="/js/core/config.js"></script>
-    <script src="/js/core/router.js"></script>
-    <script src="/js/core/app.js"></script>
+    <!-- DASHBOARD -->
+    <div id="dashboardPage" class="dashboard">
+        <div class="navbar">
+            <button onclick="testNotification()">🔔 Test Notification</button>
+            <div class="navbar-brand"><i class="fas fa-eye"></i> VisionCare Pro</div>
+            <div class="nav-tabs">
+                <div class="nav-tab active" onclick="switchTab('monitor', this)">📡 Monitor</div>
+                <div class="nav-tab" onclick="switchTab('analytics', this)">📊 Analytics</div>
+                <div class="nav-tab" onclick="switchTab('history', this)">📋 History</div>
+            </div>
+            <div><span>Dr. Emily Chen</span></div>
+        </div>
 
-    <!-- ================= AI ================= -->
-    <script src="/js/ai/camera.js"></script>
-    <script src="/js/ai/gestureEngine.js"></script>
-    <script src="/js/ai/faceRecognition.js"></script>
-    <script src="/js/ai/patientDetection.js"></script>
+        <div class="main-content">
+            <!-- MONITOR VIEW -->
+            <div id="view-monitor" class="view-section active">
+                <!-- Real-time Vitals -->
+                <div class="panel">
+                    <div class="panel-title">Real-Time Vitals</div>
+                    <div class="status-card">
+                        <div class="status-label">Heart Rate</div>
+                        <div class="status-val" id="heartRate">72 BPM</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-label">SpO2</div>
+                        <div class="status-val" id="spO2">98%</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-label">Active Gesture</div>
+                        <div class="status-val" id="live-gesture">--</div>
+                    </div>
+                </div>
 
-    <!-- ================= MEDICAL ================= -->
-    <script src="/js/medical/vitalsEngine.js"></script>
-    <script src="/js/medical/ecgEngine.js"></script>
-    <script src="/js/medical/spo2Engine.js"></script>
-    <script src="/js/medical/riskAssessment.js"></script>
+                <!-- Live Camera Feed -->
+                <div class="panel">
+                    <div class="panel-title">Live Feed</div>
+                    <div class="camera-box">
+                        <button id="startCamBtn" class="start-btn" onclick="startCamera()">TAP TO START CAMERA</button>
+                        <video id="input_video" playsinline muted></video>
+                        <canvas id="output_canvas"></canvas>
+                    </div>
+                    <div class="message-box" id="messageBox">System Ready</div>
+                </div>
+            </div>
 
-    <!-- ================= EMERGENCY ================= -->
-    <script src="/js/emergency/emergencySystem.js"></script>
-    <script src="/js/emergency/alertManager.js"></script>
-    <script src="/js/emergency/notificationService.js"></script>
+            <!-- ANALYTICS VIEW -->
+            <div id="view-analytics" class="view-section">
+                <div class="panel">
+                    <div class="panel-title">Body Analytics</div>
+                    <canvas id="intakeChart"></canvas>
+                </div>
+            </div>
 
-    <!-- ================= ANALYTICS ================= -->
-    <script src="/js/analytics/dataStore.js"></script>
-    <script src="/js/analytics/statisticsEngine.js"></script>
-    <script src="/js/analytics/reportGenerator.js"></script>
+            <!-- HISTORY VIEW -->
+            <div id="view-history" class="view-section">
+                <div class="panel">
+                    <div class="panel-title">Event History</div>
+                    <table>
+                        <thead><tr><th>Time</th><th>Category</th><th>Details</th></tr></thead>
+                        <tbody id="history-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- ================= UI ================= -->
-    <script src="/js/ui/charts.js"></script>
-    <script src="/js/ui/patientCard.js"></script>
-    <script src="/js/ui/dashboard.js"></script>
-    <script src="/js/ui/voiceSystem.js"></script>
+    <!-- SOS Overlay -->
+    <div id="sos-overlay">
+        <h1>🚨 SOS 🚨</h1>
+        <p>Patient Distress Signal</p>
+        <button onclick="dismissSOS()">ACKNOWLEDGE</button>
+    </div>
 
-    <!-- ================= BOOTSTRAP INIT ================= -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
+    <!-- CORE SCRIPTS -->
+    <script src="js/core/config.js" defer></script>
+    <script src="js/core/router.js" defer></script>
+    <script src="js/core/app.js" defer></script>
 
-            console.log("VisionCare UI Loaded");
+    <!-- AI SCRIPTS -->
+    <script src="js/ai/camera.js" defer></script>
+    <script src="js/ai/gestureEngine.js" defer></script>
+    <script src="js/ai/faceRecognition.js" defer></script>
+    <script src="js/ai/patientDetection.js" defer></script>
 
-            // Initialize Engines
-            const vitalEngine = new VitalsEngine();
-            const spo2Engine = new SpO2Engine();
-            const riskEngine = new RiskAssessmentEngine();
-            const chartEngine = new Charts("vitalChart");
+    <!-- MEDICAL SCRIPTS -->
+    <script src="js/medical/vitalsEngine.js" defer></script>
+    <script src="js/medical/ecgEngine.js" defer></script>
+    <script src="js/medical/spo2Engine.js" defer></script>
+    <script src="js/medical/riskAssessment.js" defer></script>
 
-            const dashboard = new Dashboard({
-                vitalEngine,
-                spo2Engine,
-                riskEngine,
-                chartEngine
-            });
+    <!-- EMERGENCY -->
+    <script src="js/emergency/emergencySystem.js" defer></script>
+    <script src="js/emergency/alertManager.js" defer></script>
+    <script src="js/emergency/notificationService.js" defer></script>
 
-            const patientCard = new PatientCard("patientContainer");
+    <!-- ANALYTICS -->
+    <script src="js/analytics/dataStore.js" defer></script>
+    <script src="js/analytics/statisticsEngine.js" defer></script>
+    <script src="js/analytics/reportGenerator.js" defer></script>
 
-            // Sample Patient
-            const patient = {
-                id: 1,
-                name: "ICU Patient 01",
-                age: 68,
-                ecgData: {}
-            };
-
-            patientCard.createCard(patient);
-            dashboard.loadPatient(patient);
-
-            // Simulated Live Data
-            setInterval(() => {
-
-                const vitals = {
-                    heartRate: 60 + Math.floor(Math.random() * 60),
-                    systolicBP: 100 + Math.floor(Math.random() * 60),
-                    diastolicBP: 60 + Math.floor(Math.random() * 40),
-                    temperature: (36 + Math.random() * 2).toFixed(1),
-                    respiratoryRate: 12 + Math.floor(Math.random() * 8),
-                    spo2: 92 + Math.floor(Math.random() * 6)
-                };
-
-                dashboard.processVitals(vitals);
-                patientCard.updateCard(1, vitals, "LOW");
-
-            }, 2000);
-
-            // Voice System
-            const voiceSystem = new VoiceSystem({
-                onEmergency: () => dashboard.activateEmergencyMode()
-            });
-
-            document.getElementById("voiceToggleBtn")
-                .addEventListener("click", () => voiceSystem.startListening());
-        });
-    </script>
+    <!-- UI -->
+    <script src="js/ui/dashboard.js" defer></script>
+    <script src="js/ui/charts.js" defer></script>
+    <script src="js/ui/patientCard.js" defer></script>
+    <script src="js/ui/voiceSystem.js" defer></script>
 
 </body>
 </html>
