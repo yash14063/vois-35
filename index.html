@@ -5,145 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VisionCare AI - Medical Dashboard</title>
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/animations.css">
-    <link rel="stylesheet" href="css/medical-theme.css">
+    <!-- ================= CSS ================= -->
+    <link rel="stylesheet" href="./css/main.css">
+    <link rel="stylesheet" href="./css/layout.css">
+    <link rel="stylesheet" href="./css/animations.css">
+    <link rel="stylesheet" href="./css/medical-theme.css">
 
-    <!-- External Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" defer></script>
+    <!-- External Libraries (Non-Module Safe) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
 
-    <!-- LOGIN PAGE -->
+    <!-- ================= LOGIN PAGE ================= -->
     <div id="authPage" class="auth-container">
         <div class="auth-left">
             <h1>🎯 VisionCare AI</h1>
             <p>AI-Powered Patient Monitoring System</p>
         </div>
+
         <div class="auth-right">
             <h2>Medical Login</h2>
+
             <div class="form-group">
                 <label>Doctor ID</label>
                 <input type="text" value="DR-CHEN-9921" readonly>
             </div>
+
             <div class="form-group">
                 <label>Access Key</label>
                 <input type="password" value="********" readonly>
             </div>
-            <button class="btn" onclick="handleLogin()">Access Dashboard</button>
+
+            <button class="btn" onclick="handleLogin()">
+                Access Dashboard
+            </button>
         </div>
     </div>
 
-    <!-- DASHBOARD -->
-    <div id="dashboardPage" class="dashboard">
+    <!-- ================= DASHBOARD ================= -->
+    <div id="dashboardPage" class="dashboard" style="display:none;">
+
         <div class="navbar">
-            <button onclick="testNotification()">🔔 Test Notification</button>
-            <div class="navbar-brand"><i class="fas fa-eye"></i> VisionCare Pro</div>
-            <div class="nav-tabs">
-                <div class="nav-tab active" onclick="switchTab('monitor', this)">📡 Monitor</div>
-                <div class="nav-tab" onclick="switchTab('analytics', this)">📊 Analytics</div>
-                <div class="nav-tab" onclick="switchTab('history', this)">📋 History</div>
+            <div class="navbar-brand">
+                VisionCare Pro
             </div>
-            <div><span>Dr. Emily Chen</span></div>
+
+            <div class="controls">
+                <button id="startBtn">Start Monitoring</button>
+                <button id="stopBtn">Stop Monitoring</button>
+                <button id="resolveBtn">Resolve Emergency</button>
+            </div>
         </div>
 
         <div class="main-content">
-            <!-- MONITOR VIEW -->
-            <div id="view-monitor" class="view-section active">
-                <!-- Real-time Vitals -->
-                <div class="panel">
-                    <div class="panel-title">Real-Time Vitals</div>
-                    <div class="status-card">
-                        <div class="status-label">Heart Rate</div>
-                        <div class="status-val" id="heartRate">72 BPM</div>
-                    </div>
-                    <div class="status-card">
-                        <div class="status-label">SpO2</div>
-                        <div class="status-val" id="spO2">98%</div>
-                    </div>
-                    <div class="status-card">
-                        <div class="status-label">Active Gesture</div>
-                        <div class="status-val" id="live-gesture">--</div>
-                    </div>
-                </div>
 
-                <!-- Live Camera Feed -->
-                <div class="panel">
-                    <div class="panel-title">Live Feed</div>
-                    <div class="camera-box">
-                        <button id="startCamBtn" class="start-btn" onclick="startCamera()">TAP TO START CAMERA</button>
-                        <video id="input_video" playsinline muted></video>
-                        <canvas id="output_canvas"></canvas>
-                    </div>
-                    <div class="message-box" id="messageBox">System Ready</div>
-                </div>
+            <!-- Camera + Detection Area -->
+            <div class="camera-container">
+                <video id="video" autoplay playsinline muted></video>
+                <canvas id="overlay"></canvas>
+                <canvas id="gestureOverlay"></canvas>
             </div>
 
-            <!-- ANALYTICS VIEW -->
-            <div id="view-analytics" class="view-section">
-                <div class="panel">
-                    <div class="panel-title">Body Analytics</div>
-                    <canvas id="intakeChart"></canvas>
-                </div>
+            <!-- Status Panel -->
+            <div class="status-panel">
+                <h3>System Status</h3>
+                <div id="systemStatus">Initializing...</div>
             </div>
 
-            <!-- HISTORY VIEW -->
-            <div id="view-history" class="view-section">
-                <div class="panel">
-                    <div class="panel-title">Event History</div>
-                    <table>
-                        <thead><tr><th>Time</th><th>Category</th><th>Details</th></tr></thead>
-                        <tbody id="history-table-body"></tbody>
-                    </table>
-                </div>
-            </div>
         </div>
     </div>
 
-    <!-- SOS Overlay -->
-    <div id="sos-overlay">
-        <h1>🚨 SOS 🚨</h1>
-        <p>Patient Distress Signal</p>
-        <button onclick="dismissSOS()">ACKNOWLEDGE</button>
-    </div>
+    <!-- ================= MODULE ENTRY POINT ================= -->
+    <!-- IMPORTANT: Load ONLY app.js -->
+    <script type="module" src="./js/core/app.js"></script>
 
-    <!-- CORE SCRIPTS -->
-    <script src="js/core/config.js" defer></script>
-    <script src="js/core/router.js" defer></script>
-    <script src="js/core/app.js" defer></script>
-
-    <!-- AI SCRIPTS -->
-    <script src="js/ai/camera.js" defer></script>
-    <script src="js/ai/gestureEngine.js" defer></script>
-    <script src="js/ai/faceRecognition.js" defer></script>
-    <script src="js/ai/patientDetection.js" defer></script>
-
-    <!-- MEDICAL SCRIPTS -->
-    <script src="js/medical/vitalsEngine.js" defer></script>
-    <script src="js/medical/ecgEngine.js" defer></script>
-    <script src="js/medical/spo2Engine.js" defer></script>
-    <script src="js/medical/riskAssessment.js" defer></script>
-
-    <!-- EMERGENCY -->
-    <script src="js/emergency/emergencySystem.js" defer></script>
-    <script src="js/emergency/alertManager.js" defer></script>
-    <script src="js/emergency/notificationService.js" defer></script>
-
-    <!-- ANALYTICS -->
-    <script src="js/analytics/dataStore.js" defer></script>
-    <script src="js/analytics/statisticsEngine.js" defer></script>
-    <script src="js/analytics/reportGenerator.js" defer></script>
-
-    <!-- UI -->
-    <script src="js/ui/dashboard.js" defer></script>
-    <script src="js/ui/charts.js" defer></script>
-    <script src="js/ui/patientCard.js" defer></script>
-    <script src="js/ui/voiceSystem.js" defer></script>
+    <!-- ================= SIMPLE LOGIN HANDLER ================= -->
+    <script>
+        function handleLogin() {
+            document.getElementById("authPage").style.display = "none";
+            document.getElementById("dashboardPage").style.display = "block";
+        }
+    </script>
 
 </body>
 </html>
