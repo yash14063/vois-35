@@ -1,139 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>VisionCare AI - Medical Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VisionCare AI - ICU Monitoring</title>
+
+    <!-- ================= CSS ================= -->
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/layout.css" />
+    <link rel="stylesheet" href="/css/animations.css" />
+    <link rel="stylesheet" href="/css/medical-theme.css" />
 
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Main Styles -->
-    <link rel="stylesheet" href="main.css">
 </head>
 
 <body>
 
-    <!-- HEADER -->
-    <header class="header">
-        <h1>VisionCare AI - ICU Monitoring System</h1>
-        <button id="emergencyBtn" class="emergency-btn">🚨 Emergency</button>
+    <!-- ================= HEADER ================= -->
+    <header class="app-header">
+        <div class="logo">
+            <h1>VisionCare AI</h1>
+            <span class="tagline">Intelligent ICU Monitoring System</span>
+        </div>
+
+        <div class="header-controls">
+            <button id="voiceToggleBtn" class="control-btn">
+                🎤 Voice
+            </button>
+            <button id="emergencyBtn" class="emergency-btn">
+                🚨 Emergency
+            </button>
+        </div>
     </header>
 
-    <!-- MAIN LAYOUT -->
-    <div class="layout">
+    <!-- ================= MAIN LAYOUT ================= -->
+    <div class="app-layout">
 
-        <!-- LEFT PANEL - PATIENT LIST -->
-        <aside class="patient-panel">
+        <!-- ===== LEFT SIDEBAR ===== -->
+        <aside class="sidebar">
             <h2>Patients</h2>
-            <div id="patientContainer"></div>
+            <div id="patientContainer" class="patient-list"></div>
         </aside>
 
-        <!-- RIGHT PANEL - DASHBOARD -->
+        <!-- ===== MAIN DASHBOARD ===== -->
         <main class="dashboard">
 
             <!-- Patient Info -->
-            <section class="patient-info">
+            <section class="patient-info-card">
                 <h2 id="patientName">No Patient Selected</h2>
                 <p id="patientAge"></p>
             </section>
 
-            <!-- Vitals Display -->
+            <!-- Vitals Grid -->
             <section class="vitals-grid">
-                <div class="vital-card">
+
+                <div class="vital-box">
                     <h3>Heart Rate</h3>
                     <p id="heartRateValue">--</p>
                 </div>
 
-                <div class="vital-card">
+                <div class="vital-box">
                     <h3>Blood Pressure</h3>
                     <p id="bpValue">-- / --</p>
                 </div>
 
-                <div class="vital-card">
+                <div class="vital-box">
                     <h3>Temperature</h3>
                     <p id="tempValue">--</p>
                 </div>
 
-                <div class="vital-card">
+                <div class="vital-box">
                     <h3>SpO₂</h3>
                     <p id="spo2Value">--</p>
                 </div>
+
             </section>
 
             <!-- Risk Section -->
-            <section class="risk-section">
+            <section class="risk-panel">
                 <h3>Risk Level</h3>
-                <p id="riskLevel" class="risk-low">LOW</p>
+                <div id="riskLevel" class="risk-badge low">LOW</div>
                 <p id="recommendation">Stable condition.</p>
             </section>
 
-            <!-- Chart Section -->
-            <section class="chart-section">
+            <!-- Charts Section -->
+            <section class="charts-panel">
                 <canvas id="vitalChart"></canvas>
             </section>
 
         </main>
+
     </div>
 
-    <!-- SCRIPTS -->
-    <script src="vitalEngine.js"></script>
-    <script src="spo2Engine.js"></script>
-    <script src="riskAssessment.js"></script>
-    <script src="chart.js"></script>
-    <script src="patientCard.js"></script>
-    <script src="dashboard.js"></script>
-    <script src="voiceSystem.js"></script>
+    <!-- ================= CORE SCRIPTS ================= -->
+    <script src="/js/core/config.js"></script>
+    <script src="/js/core/router.js"></script>
+    <script src="/js/core/app.js"></script>
 
+    <!-- ================= AI ================= -->
+    <script src="/js/ai/camera.js"></script>
+    <script src="/js/ai/gestureEngine.js"></script>
+    <script src="/js/ai/faceRecognition.js"></script>
+    <script src="/js/ai/patientDetection.js"></script>
+
+    <!-- ================= MEDICAL ================= -->
+    <script src="/js/medical/vitalsEngine.js"></script>
+    <script src="/js/medical/ecgEngine.js"></script>
+    <script src="/js/medical/spo2Engine.js"></script>
+    <script src="/js/medical/riskAssessment.js"></script>
+
+    <!-- ================= EMERGENCY ================= -->
+    <script src="/js/emergency/emergencySystem.js"></script>
+    <script src="/js/emergency/alertManager.js"></script>
+    <script src="/js/emergency/notificationService.js"></script>
+
+    <!-- ================= ANALYTICS ================= -->
+    <script src="/js/analytics/dataStore.js"></script>
+    <script src="/js/analytics/statisticsEngine.js"></script>
+    <script src="/js/analytics/reportGenerator.js"></script>
+
+    <!-- ================= UI ================= -->
+    <script src="/js/ui/charts.js"></script>
+    <script src="/js/ui/patientCard.js"></script>
+    <script src="/js/ui/dashboard.js"></script>
+    <script src="/js/ui/voiceSystem.js"></script>
+
+    <!-- ================= BOOTSTRAP INIT ================= -->
     <script>
-        // Initialize Engines
-        const vitalEngine = new VitalEngine();
-        const spo2Engine = new SpO2Engine();
-        const riskEngine = new RiskAssessmentEngine();
-        const chartEngine = new VitalChartEngine("vitalChart");
+        document.addEventListener("DOMContentLoaded", function () {
 
-        const dashboard = new DashboardController({
-            vitalEngine,
-            spo2Engine,
-            riskEngine,
-            chartEngine
-        });
+            console.log("VisionCare UI Loaded");
 
-        const patientCard = new PatientCard("patientContainer");
+            // Initialize Engines
+            const vitalEngine = new VitalsEngine();
+            const spo2Engine = new SpO2Engine();
+            const riskEngine = new RiskAssessmentEngine();
+            const chartEngine = new Charts("vitalChart");
 
-        // Add Sample Patient
-        const samplePatient = {
-            id: 1,
-            name: "John Doe",
-            age: 65,
-            ecgData: {}
-        };
+            const dashboard = new Dashboard({
+                vitalEngine,
+                spo2Engine,
+                riskEngine,
+                chartEngine
+            });
 
-        patientCard.createCard(samplePatient);
-        dashboard.loadPatient(samplePatient);
+            const patientCard = new PatientCard("patientContainer");
 
-        // Simulated Live Data
-        setInterval(() => {
-            const vitals = {
-                heartRate: 60 + Math.floor(Math.random() * 60),
-                systolicBP: 100 + Math.floor(Math.random() * 60),
-                diastolicBP: 60 + Math.floor(Math.random() * 40),
-                temperature: 36 + Math.random() * 2,
-                respiratoryRate: 12 + Math.floor(Math.random() * 8),
-                spo2: 92 + Math.floor(Math.random() * 6)
+            // Sample Patient
+            const patient = {
+                id: 1,
+                name: "ICU Patient 01",
+                age: 68,
+                ecgData: {}
             };
 
-            patientCard.updateCard(1, vitals, "LOW");
-            dashboard.processVitals(vitals);
+            patientCard.createCard(patient);
+            dashboard.loadPatient(patient);
 
-        }, 2000);
+            // Simulated Live Data
+            setInterval(() => {
 
-        // Voice System
-        const voiceSystem = new VoiceSystem({
-            onEmergency: () => dashboard.activateEmergencyMode()
+                const vitals = {
+                    heartRate: 60 + Math.floor(Math.random() * 60),
+                    systolicBP: 100 + Math.floor(Math.random() * 60),
+                    diastolicBP: 60 + Math.floor(Math.random() * 40),
+                    temperature: (36 + Math.random() * 2).toFixed(1),
+                    respiratoryRate: 12 + Math.floor(Math.random() * 8),
+                    spo2: 92 + Math.floor(Math.random() * 6)
+                };
+
+                dashboard.processVitals(vitals);
+                patientCard.updateCard(1, vitals, "LOW");
+
+            }, 2000);
+
+            // Voice System
+            const voiceSystem = new VoiceSystem({
+                onEmergency: () => dashboard.activateEmergencyMode()
+            });
+
+            document.getElementById("voiceToggleBtn")
+                .addEventListener("click", () => voiceSystem.startListening());
         });
-
-        voiceSystem.startListening();
     </script>
 
 </body>
