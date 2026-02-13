@@ -1,1 +1,278 @@
+/* ======================================================
+   VisionCare AI - Medical Theme System
+   Hospital Grade Styling
+====================================================== */
+
+/* ================= MEDICAL COLOR PALETTE ================= */
+
+:root {
+
+    /* Clinical Backgrounds */
+    --medical-bg-dark: #0b1320;
+    --medical-bg-light: #f4f9ff;
+    --medical-bg-icu: #071018;
+
+    /* Core Medical Colors */
+    --medical-blue: #1976d2;
+    --medical-teal: #009688;
+    --medical-green: #2e7d32;
+    --medical-orange: #ed6c02;
+    --medical-red: #d32f2f;
+
+    /* Monitoring Colors */
+    --monitor-green: #00ff88;
+    --monitor-yellow: #ffcc00;
+    --monitor-red: #ff3b3b;
+
+    /* Soft Effects */
+    --medical-glow-blue: rgba(25, 118, 210, 0.4);
+    --medical-glow-green: rgba(0, 255, 136, 0.4);
+    --medical-glow-red: rgba(255, 59, 59, 0.5);
+}
+
+/* ================= GLOBAL MEDICAL BACKGROUND ================= */
+
+body.medical-mode {
+    background: linear-gradient(135deg, var(--medical-bg-dark), #101c2e);
+}
+
+/* ================= CLINICAL WHITE MODE ================= */
+
+body.clinical-light {
+    background: var(--medical-bg-light);
+    color: #1e293b;
+}
+
+body.clinical-light .card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+/* ================= ICU MONITOR MODE ================= */
+
+body.icu-mode {
+    background: var(--medical-bg-icu);
+    color: var(--monitor-green);
+}
+
+body.icu-mode .card {
+    background: rgba(0,255,136,0.05);
+    border: 1px solid var(--monitor-green);
+}
+
+/* ================= MEDICAL CARDS ================= */
+
+.medical-card {
+    border-left: 5px solid var(--medical-blue);
+}
+
+.medical-card.success {
+    border-left-color: var(--medical-green);
+}
+
+.medical-card.warning {
+    border-left-color: var(--medical-orange);
+}
+
+.medical-card.critical {
+    border-left-color: var(--medical-red);
+}
+
+/* ================= HEART RATE STYLING ================= */
+
+.heart-rate-display {
+    font-size: 2rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.heart-rate-display.normal {
+    color: var(--monitor-green);
+    text-shadow: 0 0 8px var(--medical-glow-green);
+}
+
+.heart-rate-display.warning {
+    color: var(--monitor-yellow);
+}
+
+.heart-rate-display.critical {
+    color: var(--monitor-red);
+    text-shadow: 0 0 12px var(--medical-glow-red);
+}
+
+/* ================= ECG CONTAINER ================= */
+
+.ecg-monitor {
+    background: #000;
+    border-radius: 15px;
+    border: 1px solid var(--monitor-green);
+    padding: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.ecg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0,255,136,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,136,0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+/* ================= MEDICAL BADGES ================= */
+
+.med-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.med-badge.normal {
+    background: rgba(0,255,136,0.15);
+    color: var(--monitor-green);
+}
+
+.med-badge.warning {
+    background: rgba(255,204,0,0.15);
+    color: var(--monitor-yellow);
+}
+
+.med-badge.critical {
+    background: rgba(255,59,59,0.15);
+    color: var(--monitor-red);
+}
+
+/* ================= ALERT PANEL ================= */
+
+.medical-alert-panel {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 15px;
+    background: rgba(211, 47, 47, 0.1);
+    border: 1px solid var(--medical-red);
+    color: var(--medical-red);
+    font-weight: bold;
+}
+
+/* ================= BUTTON THEMES ================= */
+
+.btn-medical-primary {
+    background: var(--medical-blue);
+    color: white;
+}
+
+.btn-medical-primary:hover {
+    box-shadow: 0 0 12px var(--medical-glow-blue);
+}
+
+.btn-medical-success {
+    background: var(--medical-green);
+    color: white;
+}
+
+.btn-medical-danger {
+    background: var(--medical-red);
+    color: white;
+}
+
+/* ================= MONITOR GLOW EFFECT ================= */
+
+.monitor-glow {
+    box-shadow: 0 0 15px var(--medical-glow-green);
+}
+
+.monitor-glow-critical {
+    box-shadow: 0 0 20px var(--medical-glow-red);
+}
+
+/* ================= PATIENT ID STYLING ================= */
+
+.patient-id {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--medical-teal);
+}
+
+/* ================= SYSTEM STATUS BAR ================= */
+
+.system-status-bar {
+    height: 6px;
+    border-radius: 6px;
+    background: linear-gradient(90deg,
+        var(--monitor-green),
+        var(--monitor-yellow),
+        var(--monitor-red)
+    );
+}
+
+/* ================= RISK SCORE INDICATOR ================= */
+
+.risk-indicator {
+    margin-top: 10px;
+    height: 8px;
+    border-radius: 10px;
+    background: #1e293b;
+    overflow: hidden;
+}
+
+.risk-indicator-fill {
+    height: 100%;
+    background: var(--monitor-green);
+    width: 40%;
+}
+
+.risk-indicator-fill.medium {
+    background: var(--monitor-yellow);
+    width: 70%;
+}
+
+.risk-indicator-fill.high {
+    background: var(--monitor-red);
+    width: 100%;
+}
+
+/* ================= CLINICAL TABLE ================= */
+
+.clinical-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.clinical-table th {
+    text-align: left;
+    padding: 10px;
+    background: rgba(25,118,210,0.1);
+    color: var(--medical-blue);
+}
+
+.clinical-table td {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ================= MEDICAL TYPOGRAPHY ================= */
+
+.medical-title {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.medical-subtitle {
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+
+/* ================= FUTURE MEDICAL MODULES ================= */
+
+.telemedicine-panel {}
+.ai-diagnostics-panel {}
+.iot-sensor-panel {}
+.robotic-arm-medical-status {}
+.voice-assistant-medical-mode {}
+.multi-ward-dashboard {}
+.icc-monitoring-grid {}
 
