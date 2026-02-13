@@ -1,25 +1,26 @@
-/* =========================================
-   VisionCare AI - Main CSS
-   Enterprise Medical Theme
-========================================= */
+/* ======================================================
+   VisionCare AI - Enterprise Medical Dashboard
+   Main Stylesheet
+   Version: Production Demo
+====================================================== */
 
-/* ---------- ROOT VARIABLES ---------- */
+/* ================= ROOT VARIABLES ================= */
 
 :root {
     --bg-primary: #0f172a;
     --bg-secondary: #111827;
-    --bg-card: rgba(255,255,255,0.06);
+    --bg-card: rgba(255, 255, 255, 0.05);
     --accent-blue: #3b82f6;
     --accent-green: #10b981;
     --accent-yellow: #f59e0b;
     --accent-red: #ef4444;
     --text-primary: #ffffff;
     --text-muted: #94a3b8;
-    --glass-blur: blur(14px);
     --border-soft: rgba(255,255,255,0.1);
+    --glass-blur: blur(15px);
 }
 
-/* ---------- GLOBAL RESET ---------- */
+/* ================= GLOBAL RESET ================= */
 
 * {
     margin: 0;
@@ -27,80 +28,87 @@
     box-sizing: border-box;
 }
 
-html, body {
-    height: 100%;
+body {
     font-family: 'Segoe UI', Arial, sans-serif;
     background: radial-gradient(circle at top left, var(--bg-primary), var(--bg-secondary));
     color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
-/* ---------- APP ROOT ---------- */
+/* ================= APP ROOT ================= */
 
 #app-root {
-    padding: 20px;
-    min-height: 100vh;
+    padding: 30px;
+    max-width: 1400px;
+    margin: auto;
 }
 
-/* ---------- TYPOGRAPHY ---------- */
+/* ================= HEADER ================= */
 
 h1 {
-    font-size: 2.2rem;
-    font-weight: 600;
-    margin-bottom: 20px;
     text-align: center;
+    font-size: 2.2rem;
+    margin-bottom: 25px;
     letter-spacing: 1px;
 }
 
 h2 {
-    font-size: 1.4rem;
-    margin-bottom: 10px;
+    font-size: 1.3rem;
+    margin-bottom: 15px;
     font-weight: 500;
 }
 
 p {
-    font-size: 1rem;
     color: var(--text-muted);
 }
 
-/* ---------- DASHBOARD LAYOUT ---------- */
+/* ================= CAMERA SECTION ================= */
+
+#camera-feed {
+    display: block;
+    margin: 0 auto 25px auto;
+    width: 720px;
+    height: 500px;
+    border-radius: 20px;
+    border: 2px solid var(--border-soft);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+}
+
+#overlay {
+    position: absolute;
+    top: 150px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+/* ================= DASHBOARD GRID ================= */
 
 .dashboard {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-top: 20px;
+    gap: 25px;
 }
 
-/* ---------- CARD COMPONENT ---------- */
+/* ================= CARD COMPONENT ================= */
 
 .card {
     background: var(--bg-card);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border-soft);
-    border-radius: 20px;
-    padding: 20px;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    border-radius: 22px;
+    padding: 25px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    transition: 0.3s ease;
 }
 
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    transform: translateY(-6px);
+    box-shadow: 0 15px 50px rgba(0,0,0,0.7);
 }
 
-/* ---------- CAMERA FEED ---------- */
-
-#camera-feed {
-    width: 640px;
-    height: 480px;
-    border-radius: 20px;
-    border: 2px solid var(--border-soft);
-    display: block;
-    margin: 0 auto 20px auto;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-}
-
-/* ---------- VITALS DISPLAY ---------- */
+/* ================= VITALS SECTION ================= */
 
 .vitals {
     display: flex;
@@ -118,12 +126,11 @@ p {
 }
 
 .vital-value {
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     font-weight: bold;
-    color: var(--accent-green);
 }
 
-/* ---------- STATUS INDICATORS ---------- */
+/* ================= STATUS COLORS ================= */
 
 .status-normal {
     color: var(--accent-green);
@@ -137,40 +144,32 @@ p {
     color: var(--accent-red);
 }
 
-/* ---------- ALERT BOX ---------- */
+/* ================= ALERT BOX ================= */
 
 .alert-box {
-    margin-top: 20px;
-    padding: 15px;
-    border-radius: 12px;
+    margin-top: 30px;
+    padding: 18px;
+    border-radius: 15px;
     background: rgba(255,255,255,0.05);
     border: 1px solid var(--border-soft);
-    text-align: center;
     font-weight: 500;
-    transition: 0.3s;
+    text-align: center;
 }
 
-/* ---------- EMERGENCY MODE ---------- */
+/* ================= EMERGENCY MODE ================= */
 
 body.emergency-mode {
     background: radial-gradient(circle at center, #7f1d1d, #1f2937);
-    animation: pulseEmergency 0.7s infinite;
 }
 
-@keyframes pulseEmergency {
-    0% { filter: brightness(1); }
-    50% { filter: brightness(1.2); }
-    100% { filter: brightness(1); }
-}
-
-/* ---------- BUTTONS ---------- */
+/* ================= BUTTONS ================= */
 
 .btn {
     padding: 10px 18px;
     border-radius: 12px;
     border: none;
-    cursor: pointer;
     font-weight: 500;
+    cursor: pointer;
     transition: 0.3s;
 }
 
@@ -192,27 +191,80 @@ body.emergency-mode {
     background: #b91c1c;
 }
 
-/* ---------- CHART CANVAS ---------- */
+/* ================= ECG CONTAINER ================= */
 
-canvas {
-    width: 100% !important;
-    height: 200px !important;
+.ecg-container {
+    margin-top: 20px;
+    height: 120px;
+    border-radius: 15px;
+    background: rgba(16,185,129,0.1);
+    border: 1px solid var(--accent-green);
+    position: relative;
+    overflow: hidden;
 }
 
-/* ---------- RESPONSIVE ---------- */
+/* ================= NOTIFICATIONS ================= */
 
-@media (max-width: 1024px) {
-    .dashboard {
-        grid-template-columns: 1fr;
-    }
-
-    #camera-feed {
-        width: 100%;
-        height: auto;
-    }
+.notification-popup {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #1f2937;
+    padding: 15px 20px;
+    border-radius: 12px;
+    border-left: 5px solid var(--accent-blue);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    z-index: 999;
 }
 
-/* ---------- SCROLLBAR STYLE ---------- */
+/* ================= ADMIN PANEL ================= */
+
+.admin-panel {
+    margin-top: 40px;
+    background: var(--bg-card);
+    padding: 20px;
+    border-radius: 20px;
+    border: 1px solid var(--border-soft);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border-soft);
+    text-align: left;
+}
+
+.admin-table th {
+    color: var(--accent-blue);
+}
+
+/* ================= RISK BADGES ================= */
+
+.risk-badge {
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.risk-high {
+    background: var(--accent-red);
+}
+
+.risk-medium {
+    background: var(--accent-yellow);
+}
+
+.risk-low {
+    background: var(--accent-green);
+}
+
+/* ================= SCROLLBAR ================= */
 
 ::-webkit-scrollbar {
     width: 8px;
@@ -227,30 +279,46 @@ canvas {
     background: #1f2937;
 }
 
-/* ---------- FUTURE EXPANSION AREA ---------- */
+/* ================= RESPONSIVE DESIGN ================= */
 
-/* 
-Add below for:
-- Doctor Admin Panel
-- Analytics Charts
-- Patient History Table
-- Risk Score Color Coding
-- ECG Wave Styling
-- Voice Indicator UI
-- Notification Popups
-- Multi-tab Navigation
-*/
+@media (max-width: 1100px) {
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
 
-/* Placeholder classes for future expansion */
+    #camera-feed {
+        width: 100%;
+        height: auto;
+    }
+}
+
+@media (max-width: 600px) {
+    #app-root {
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    .vital-value {
+        font-size: 1.2rem;
+    }
+}
+
+/* ================= FUTURE EXPANSION PLACEHOLDERS ================= */
 
 .analytics-panel {}
-.patient-history-table {}
-.risk-score-high {}
-.risk-score-medium {}
-.risk-score-low {}
-.voice-indicator {}
-.notification-popup {}
-.tab-navigation {}
-.ecg-wave {}
-.spo2-indicator {}
-.patient-id-badge {}
+.patient-history {}
+.doctor-login {}
+.multi-camera-view {}
+.robotic-arm-status {}
+.ai-confidence-score {}
+.system-logs {}
+.sensor-data-stream {}
+.iot-status {}
+.voice-alert-indicator {}
