@@ -1,1 +1,241 @@
+/* ======================================================
+   VisionCare AI - Layout System
+   Enterprise Dashboard Structure
+====================================================== */
+
+/* ================= MAIN WRAPPER ================= */
+
+.app-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar {
+    width: 240px;
+    background: #0b1220;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    transition: 0.3s ease;
+}
+
+.sidebar-logo {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 30px;
+    color: #3b82f6;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.sidebar-nav a {
+    text-decoration: none;
+    color: #cbd5e1;
+    padding: 10px 15px;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+
+.sidebar-nav a:hover {
+    background: rgba(59,130,246,0.2);
+    color: #ffffff;
+}
+
+/* ================= MAIN CONTENT ================= */
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ================= TOPBAR ================= */
+
+.topbar {
+    height: 70px;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 25px;
+}
+
+.topbar-title {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.topbar-actions {
+    display: flex;
+    gap: 15px;
+}
+
+/* ================= CONTENT AREA ================= */
+
+.content-area {
+    padding: 30px;
+    flex: 1;
+}
+
+/* ================= CAMERA SECTION ================= */
+
+.camera-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+/* ================= PATIENT GRID ================= */
+
+.patient-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+}
+
+/* ================= PATIENT CARD WRAPPER ================= */
+
+.patient-card-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ================= ANALYTICS GRID ================= */
+
+.analytics-grid {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+/* ================= FOOTER ================= */
+
+.footer {
+    height: 60px;
+    background: rgba(255,255,255,0.02);
+    border-top: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+/* ================= MULTI CAMERA VIEW ================= */
+
+.multi-camera-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.camera-box {
+    background: rgba(255,255,255,0.05);
+    border-radius: 15px;
+    padding: 10px;
+}
+
+/* ================= ADMIN TABLE LAYOUT ================= */
+
+.table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+/* ================= ROBOTIC ARM STATUS PANEL ================= */
+
+.robotic-arm-panel {
+    margin-top: 30px;
+    display: flex;
+    gap: 20px;
+}
+
+.robotic-arm-status-box {
+    flex: 1;
+    padding: 20px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.05);
+}
+
+/* ================= RESPONSIVE DESIGN ================= */
+
+@media (max-width: 1100px) {
+
+    .sidebar {
+        width: 70px;
+        padding: 15px;
+    }
+
+    .sidebar-logo {
+        display: none;
+    }
+
+    .sidebar-nav a {
+        text-align: center;
+        padding: 8px;
+        font-size: 0.8rem;
+    }
+
+    .patient-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .multi-camera-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .topbar {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+        gap: 10px;
+    }
+
+    .content-area {
+        padding: 15px;
+    }
+
+    .footer {
+        font-size: 0.75rem;
+    }
+}
+
+/* ================= COLLAPSED SIDEBAR STATE ================= */
+
+.sidebar.collapsed {
+    width: 0;
+    overflow: hidden;
+}
+
+/* ================= HIDDEN UTILITIES ================= */
+
+.hidden {
+    display: none !important;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
