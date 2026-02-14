@@ -1,10 +1,13 @@
 /* ===========================================
    VisionCare AI - Main Application Controller
-   =========================================== */
+   app.js
+=========================================== */
+
+/* FIXED IMPORT PATHS */
 
 import Camera from '../ai/camera.js';
 import PatientDetectionEngine from '../ai/patientDetection.js';
-import GestureRecognitionEngine from '../ai/gestureRecognition.js';
+import GestureRecognitionEngine from '../ai/gestureEngine.js'; // FIXED NAME
 import AlertManager from '../emergency/alertManager.js';
 import EmergencySystem from '../emergency/emergencySystem.js';
 import NotificationService from '../emergency/notificationService.js';
@@ -13,6 +16,7 @@ class VisionCareApp {
 
     constructor() {
 
+        /* Correct element IDs from index.html */
         this.video = document.getElementById("video");
         this.overlayCanvas = document.getElementById("overlay");
         this.gestureCanvas = document.getElementById("gestureOverlay");
@@ -20,6 +24,7 @@ class VisionCareApp {
         this.camera = null;
         this.patientEngine = null;
         this.gestureEngine = null;
+
         this.alertManager = new AlertManager();
         this.emergencySystem = new EmergencySystem(this.alertManager);
         this.notificationService = new NotificationService();
@@ -29,13 +34,28 @@ class VisionCareApp {
 
     async init() {
 
-        console.log("🚀 Initializing VisionCare System...");
+        console.log("🚀 VisionCare Initializing...");
 
+        if (!this.video) {
+            console.error("❌ Video element not found");
+            return;
+        }
+
+        /* Notification permission */
         await this.notificationService.requestPermission();
 
+        /* Camera setup */
         this.camera = new Camera(this.video);
-        await this.camera.start();
 
+        try {
+            await this.camera.start();
+            console.log("✅ Camera started");
+        } catch (err) {
+            console.error("❌ Camera failed:", err);
+            return;
+        }
+
+        /* Patient Detection */
         this.patientEngine = new PatientDetectionEngine(
             this.video,
             this.overlayCanvas
@@ -43,6 +63,7 @@ class VisionCareApp {
 
         await this.patientEngine.loadModel();
 
+        /* Gesture Recognition */
         this.gestureEngine = new GestureRecognitionEngine(
             this.video,
             this.gestureCanvas
@@ -50,6 +71,7 @@ class VisionCareApp {
 
         await this.gestureEngine.init();
 
+        /* Connect emergency events */
         this.patientEngine.onAlert((data) => {
             this.emergencySystem.handlePatientEvent(data);
         });
@@ -67,16 +89,12 @@ class VisionCareApp {
 
         if (this.systemActive) return;
 
+        console.log("▶ Starting monitoring...");
+
         await this.patientEngine.start();
         await this.gestureEngine.start();
 
         this.systemActive = true;
-
-        this.notificationService.sendInAppNotification({
-            title: "System Started",
-            message: "AI Monitoring Activated",
-            type: "low"
-        });
     }
 
     stopSystem() {
@@ -85,36 +103,35 @@ class VisionCareApp {
 
         this.patientEngine.stop();
         this.gestureEngine.stop();
-        this.emergencySystem.resolveEmergency();
 
         this.systemActive = false;
 
-        console.log("🛑 Monitoring Stopped");
+        console.log("🛑 Monitoring stopped");
     }
 
     attachUIControls() {
 
         const startBtn = document.getElementById("startBtn");
         const stopBtn = document.getElementById("stopBtn");
-        const resolveBtn = document.getElementById("resolveBtn");
 
         if (startBtn)
             startBtn.addEventListener("click", () => this.startSystem());
 
         if (stopBtn)
             stopBtn.addEventListener("click", () => this.stopSystem());
-
-        if (resolveBtn)
-            resolveBtn.addEventListener("click", () =>
-                this.emergencySystem.resolveEmergency()
-            );
     }
 }
 
+export default VisionCareApp;
+
+
+/* AUTO START */
+
 document.addEventListener("DOMContentLoaded", async () => {
+
     const app = new VisionCareApp();
     await app.init();
-    window.visionCareApp = app;
-});
 
-export default VisionCareApp;
+    window.visionCareApp = app;
+
+});
